@@ -1,4 +1,4 @@
-package uk.gov.pay.java_lambdas.bin_ranges_integrity.java_lambdas.bin_ranges_diff;
+package uk.gov.pay.java_lambdas.bin_ranges_diff;
 
 
 import org.junit.jupiter.api.Test;
