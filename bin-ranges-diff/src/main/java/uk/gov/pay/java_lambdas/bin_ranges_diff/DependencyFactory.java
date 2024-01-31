@@ -1,4 +1,4 @@
-package uk.gov.pay.java_lambdas.bin_ranges_integrity.java_lambdas.bin_ranges_diff;
+package uk.gov.pay.java_lambdas.bin_ranges_diff;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
