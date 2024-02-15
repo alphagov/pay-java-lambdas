@@ -68,7 +68,7 @@ public class App implements RequestHandler<Void, Object> {
                 List<SftpClient.DirEntry> dirEntries = sftpClient.readDir(handle);
 
                 List<SftpDownload> downloadList = dirEntries.stream()
-                    .filter(entry -> entry.getFilename().contains(SFTP_FILE_PREFIX))
+                    .filter(entry -> entry.getFilename().startsWith(SFTP_FILE_PREFIX))
                     .map(entry -> new SftpDownload(
                         String.format("%s/%s", SFTP_DIRECTORY, entry.getFilename()),
                         entry.getFilename(),

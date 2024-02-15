@@ -13,12 +13,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public class MockSftpServer {
 
     private SshServer sshServer;
     private Path mockDir;
-    public static final List<String> EXPECTED_FILES = Arrays.asList("WP_341BIN_V03_20240212_001.CSV", "WP_341BIN_V04_20240212_001.CSV");
+    public static final String TEST_SERVER_USERNAME = "test_user"; 
 
     public void startServer() throws IOException {
         sshServer = SshServer.setUpDefaultServer();
@@ -27,9 +28,7 @@ public class MockSftpServer {
         Path hostKey = Path.of(ClassLoader.getSystemResource("ssh/test_hostkey.ser").getPath());
         sshServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(hostKey));
 
-        sshServer.setPublickeyAuthenticator((username, key, session) -> {
-            return true; // accept any
-        });
+        sshServer.setPublickeyAuthenticator((username, key, session) -> TEST_SERVER_USERNAME.equals(username));
 
         configureFileSystem(sshServer);
 

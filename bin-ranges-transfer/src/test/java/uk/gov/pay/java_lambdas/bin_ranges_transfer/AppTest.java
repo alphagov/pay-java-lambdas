@@ -9,6 +9,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.pay.java_lambdas.bin_ranges_transfer.helper.MockSftpServer.TEST_SERVER_USERNAME;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import org.apache.sshd.client.SshClient;
@@ -74,7 +75,7 @@ class AppTest {
             dependencyFactoryMockedStatic.when(DependencyFactory::ssmClient).thenReturn(mockSsmClient);
             constantsMockedStatic.when(Constants::getSftpPort).thenReturn(mockSftpServer.getPort());
             constantsMockedStatic.when(Constants::getSftpHost).thenReturn(mockSftpServer.getHost());
-            constantsMockedStatic.when(Constants::getSftpUsername).thenReturn("test_user");
+            constantsMockedStatic.when(Constants::getSftpUsername).thenReturn(TEST_SERVER_USERNAME);
 
             when(mockSsmClient.getParameter(any(GetParameterRequest.class)))
                 .thenReturn(ssmParameterResponseBuilder(testPassphrase))

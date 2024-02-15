@@ -98,10 +98,10 @@
                     </argLine>
                     <environmentVariables>
                         <AWS_ACCOUNT_NAME>test</AWS_ACCOUNT_NAME>
+                        <AWS_REGION>eu-west-1</AWS_REGION>
+                        <S3_BUCKET_NAME>bin-ranges-staging</S3_BUCKET_NAME>
                     </environmentVariables>
                 </configuration>
-
-
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -24,6 +24,8 @@ import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.util.Collection;
 
+import static uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants.AWS_REGION;
+
 /**
  * The module containing all dependencies required by the {@link App}.
  */
@@ -35,7 +37,7 @@ public class DependencyFactory {
     public static SsmClient ssmClient() {
         return SsmClient.builder()
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .region(Region.EU_WEST_1)
+            .region(AWS_REGION)
             .httpClientBuilder(AwsCrtHttpClient.builder())
             .build();
     }
@@ -43,8 +45,7 @@ public class DependencyFactory {
     public static S3Client s3Client() {
         return S3Client.builder()
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-                       .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
-            .region(Region.EU_WEST_1)
+            .region(AWS_REGION)
             .httpClientBuilder(AwsCrtHttpClient.builder())
             .build();
     }
