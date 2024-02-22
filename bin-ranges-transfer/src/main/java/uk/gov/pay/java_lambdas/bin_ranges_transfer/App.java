@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants.AWS_ACCOUNT_NAME;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants.PASSPHRASE_PARAMETER_NAME;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants.PRIVATE_KEY_PARAMETER_NAME;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants.S3_BUCKET_NAME;
@@ -60,10 +59,12 @@ public class App implements RequestHandler<Void, Object> {
                 .verify()
                 .getSession();
 
+            logger.debug("Authorising SFTP session");
             session.auth().verify(10, TimeUnit.SECONDS);
+            logger.debug("SFTP session authorised");
 
             try (SftpClient sftpClient = DependencyFactory.sftpClient(session)) {
-
+                logger.debug("Changing directory to {}", SFTP_DIRECTORY);
                 SftpClient.Handle handle = sftpClient.openDir(SFTP_DIRECTORY);
                 List<SftpClient.DirEntry> dirEntries = sftpClient.readDir(handle);
 
@@ -78,6 +79,7 @@ public class App implements RequestHandler<Void, Object> {
                 if (!downloadList.isEmpty()) { 
                     streamFilesToS3(sftpClient, downloadList); 
                 } else {
+                    logger.error("No BIN ranges data found on server");
                     throw new IOException();
                 }
             }
@@ -91,34 +93,36 @@ public class App implements RequestHandler<Void, Object> {
     }
 
     private void streamFilesToS3(SftpClient sftpClient, List<SftpDownload> downloadList) {
-        String s3BucketName = String.format("%s-%s", S3_BUCKET_NAME, AWS_ACCOUNT_NAME);
         downloadList.forEach(sftpDownload -> {
             try (InputStream inputStream = sftpClient.read(sftpDownload.filePath())) {
                 
                 PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(s3BucketName)
+                    .bucket(S3_BUCKET_NAME)
                     .key(sftpDownload.getS3Key())
                     .build();
                 
-                logger.debug("S3 key: {}", sftpDownload.getS3Key());
-
+                logger.debug("Starting PutObjectRequest to {}/{}", putObjectRequest.bucket(), putObjectRequest.key());
                 RequestBody requestBody = RequestBody.fromInputStream(inputStream, sftpDownload.size());
-
                 s3Client.putObject(putObjectRequest, requestBody);
-                logger.info("{} streamed and uploaded successfully to {}", sftpDownload.fileName(), s3BucketName);
+                logger.info("{} streamed and uploaded successfully to {}", sftpDownload.fileName(), S3_BUCKET_NAME);
             } catch (Exception e) {
-                logger.error("Error streaming file from SFTP to S3: {}", e.getMessage());
+                logger.error("Error streaming file from SFTP to S3 [bucket: {}]: {}", S3_BUCKET_NAME, e.getMessage());
             }
         });
     }
 
     private HashMap<String, String> getSsmParameters() {
+        logger.debug("Retrieving secrets from SSM Parameter Store");
         GetParameterResponse passphraseResponse = ssmClient.getParameter(
             parameterRequestWithDecryption(PASSPHRASE_PARAMETER_NAME)
         );
         GetParameterResponse privateKeyResponse = ssmClient.getParameter(
             parameterRequestWithDecryption(PRIVATE_KEY_PARAMETER_NAME)
         );
+        
+        if (passphraseResponse.parameter().value().isBlank() || privateKeyResponse.parameter().value().isBlank()) {
+            logger.warn("Parameter store returned null value for a required secret");
+        }
         
         Map<String, String> iMap = Map.of("passphrase", passphraseResponse.parameter().value(),
             "privateKey", privateKeyResponse.parameter().value());
