@@ -14,7 +14,7 @@ public class Constants {
     public static final String S3_BUCKET_NAME = System.getenv("S3_BUCKET_NAME");
     public static final String PASSPHRASE_PARAMETER_NAME = System.getenv("PASSPHRASE_PARAMETER_NAME");
     public static final String PRIVATE_KEY_PARAMETER_NAME = System.getenv("PRIVATE_KEY_PARAMETER_NAME");
-    public static final Version WORLDPAY_FILE_VERSION = Version.fromString(System.getenv("WORLDPAY_FILE_VERSION"));
+    public static final Version WORLDPAY_FILE_VERSION = Version.fromEnvironment(System.getenv("WORLDPAY_FILE_VERSION"));
     private static final int SFTP_PORT = 22;
     private static final String SFTP_HOST = "mfg.worldpay.com";
     private static final String SFTP_USERNAME = "MFG_MTCPGOVD";

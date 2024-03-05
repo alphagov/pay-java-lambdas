@@ -3,18 +3,34 @@ package uk.gov.pay.java_lambdas.bin_ranges_transfer.model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public enum Version {
-    V03, V04;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
+public enum Version {
+    V03, V04, UNKNOWN;
+    
+    private static final List<Version> supportedVersions = Arrays.asList(V03, V04);
     private static final Logger logger = LoggerFactory.getLogger(Version.class);
+    
+    public static Version fromEnvironment(String versionStr) {
+        for (Version v : supportedVersions) {
+            if (v.name().equals(versionStr.toUpperCase())) {
+                logger.info("Configured Worldpay File Version: {}", v.name());
+                return v;
+            }
+        }
+        throw new IllegalArgumentException("Version not supported: " + versionStr);
+    }
 
     public static Version fromString(String versionStr) {
-        for (Version v : Version.values()) {
+        for (Version v : supportedVersions) {
             if (v.name().equals(versionStr.toUpperCase())) {
                 logger.debug("Version validated: {}", v.name());
                 return v;
             }
         }
-        throw new IllegalArgumentException("File version not recognised: " + versionStr);
+        logger.warn("Version not recognised: {}", versionStr);
+        return UNKNOWN;
     }
 }

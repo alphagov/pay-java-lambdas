@@ -93,16 +93,17 @@ class UtilsTest {
     private static Stream<Arguments> extractVersion_shouldReturnVersion_whenPresent() {
         return Stream.of(
             Arguments.of("WP_341BIN_V04_20240212_001.CSV", Version.V04),
-            Arguments.of("WP_341BIN_V03_20240102_001.CSV", Version.V03)
+            Arguments.of("WP_341BIN_V03_20240102_001.CSV", Version.V03),
+            Arguments.of("WP_341BIN_V01_20242311_001.CSV", Version.UNKNOWN),
+            Arguments.of("WP_341BIN_V99_20242311_001.CSV", Version.UNKNOWN)
         );
     }
 
     private static Stream<Arguments> extractVersion_shouldThrowException_whenVersionIsMissingOrInvalidOrNotRecognised() {
         return Stream.of(
             Arguments.of("WP_341BIN_00000000_001.CSV", BIN_RANGE_VERSION_NOT_FOUND_ERROR_MESSAGE),
-            Arguments.of("WP_341BIN_VAA_20001035_001.CSV", BIN_RANGE_VERSION_NOT_FOUND_ERROR_MESSAGE),
-            Arguments.of("WP_341BIN_V01_20242311_001.CSV", BIN_RANGE_VERSION_NOT_RECOGNISED_ERROR_MESSAGE),
-            Arguments.of("WP_341BIN_V99_20242311_001.CSV", BIN_RANGE_VERSION_NOT_RECOGNISED_ERROR_MESSAGE)
+            Arguments.of("WP_341BIN_VAA_20001035_001.CSV", BIN_RANGE_VERSION_NOT_FOUND_ERROR_MESSAGE)
+            
         );
     }
 }
