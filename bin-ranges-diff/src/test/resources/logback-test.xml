@@ -5,7 +5,7 @@
         </encoder>
     </appender>
     <logger name="software.amazon.awssdk" level="INFO" />
-    <logger name="uk.gov.pay.java_lambdas.bin_ranges_diff" level="INFO" />
+    <logger name="uk.gov.pay.java_lambdas.bin_ranges_diff" level="DEBUG" />
     <root level="debug">
         <appender-ref ref="STDOUT" />
     </root>
