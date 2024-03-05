@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.helper.MockSftpServer.TEST_SERVER_USERNAME;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import org.apache.sshd.client.SshClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
