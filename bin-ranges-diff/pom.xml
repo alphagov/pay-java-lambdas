@@ -85,6 +85,7 @@
                     <environmentVariables>
                         <AWS_REGION>eu-west-1</AWS_REGION>
                         <AWS_ACCOUNT_NAME>test</AWS_ACCOUNT_NAME>
+                        <LOG_LEVEL>DEBUG</LOG_LEVEL>
                     </environmentVariables>
                 </configuration>
             </plugin>
