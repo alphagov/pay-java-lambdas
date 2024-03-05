@@ -3,6 +3,7 @@ package uk.gov.pay.java_lambdas.bin_ranges_transfer.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ssm.model.GetParameterRequest;
+import uk.gov.pay.java_lambdas.bin_ranges_transfer.model.Version;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -45,15 +46,29 @@ public class Utils {
 
         if (matcher.find()) {
             String dateString = matcher.group();
-            logger.debug("date pattern found in file name: {}", fileName);
+            logger.debug("Date pattern [{}] found in file name: {}", dateString, fileName);
             
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
             LocalDate date = LocalDate.parse(dateString, formatter);
             
-            logger.debug("date validated: {}", date);
+            logger.debug("Date validated: {}", date);
             return date.toString();
         } else {
-            throw new IllegalArgumentException(String.format("no date string found in file name: %s", fileName));
+            throw new IllegalArgumentException(String.format("No date string found in file name: %s", fileName));
+        }
+    }
+    
+    public static Version extractVersion(String fileName) throws IllegalArgumentException {
+        String versionPattern = "V\\d{2}";
+        Pattern pattern = Pattern.compile(versionPattern);
+        Matcher matcher = pattern.matcher(fileName);
+
+        if (matcher.find()) {
+            String versionString = matcher.group();
+            logger.debug("Version pattern [{}] found in file name: {}", versionString, fileName);
+            return Version.fromString(versionString);
+        } else {
+            throw new IllegalArgumentException(String.format("No version string found in file name: %s", fileName));
         }
     }
 }

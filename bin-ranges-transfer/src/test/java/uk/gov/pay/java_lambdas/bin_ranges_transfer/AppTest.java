@@ -1,15 +1,15 @@
 package uk.gov.pay.java_lambdas.bin_ranges_transfer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.atMost;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.helper.MockSftpServer.TEST_SERVER_USERNAME;
+import static uk.gov.pay.java_lambdas.bin_ranges_transfer.helper.MockSftpServer.V03_FILENAME;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import org.junit.jupiter.api.AfterEach;
@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.ssm.model.GetParameterResponse;
 import software.amazon.awssdk.services.ssm.model.Parameter;
 import uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants;
 import uk.gov.pay.java_lambdas.bin_ranges_transfer.helper.MockSftpServer;
+import uk.gov.pay.java_lambdas.common.bin_ranges.dto.Candidate;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -38,57 +39,64 @@ import java.security.GeneralSecurityException;
 class AppTest {
 
     @Mock
-    private Context context;
+    private Context mockContext;
+    @Mock
+    private S3Client mockS3Client;
+    @Mock
+    private SsmClient mockSsmClient;
+    private MockedStatic<Constants> constantsMockedStatic;
+    private MockedStatic<DependencyFactory> dependencyFactoryMockedStatic;
     private MockSftpServer mockSftpServer;
     private String testPassphrase;
     private String testPrivateKey;
 
     @BeforeEach
     public void setUp() throws Exception {
-        when(context.getFunctionName()).thenReturn(this.getClass().getName());
-        when(context.getFunctionVersion()).thenReturn("TEST");
+        mockSftpServer = new MockSftpServer();
+        mockSftpServer.startServer();
+        
+        constantsMockedStatic = mockStatic(Constants.class);
+        dependencyFactoryMockedStatic = mockStatic(DependencyFactory.class, CALLS_REAL_METHODS);
+
+        constantsMockedStatic.when(Constants::getSftpPort).thenReturn(mockSftpServer.getPort());
+        constantsMockedStatic.when(Constants::getSftpHost).thenReturn(mockSftpServer.getHost());
+        constantsMockedStatic.when(Constants::getSftpUsername).thenReturn(TEST_SERVER_USERNAME);
+        dependencyFactoryMockedStatic.when(DependencyFactory::s3Client).thenReturn(mockS3Client);
+        dependencyFactoryMockedStatic.when(DependencyFactory::ssmClient).thenReturn(mockSsmClient);
+        
+        when(mockContext.getFunctionName()).thenReturn(this.getClass().getName());
+        when(mockContext.getFunctionVersion()).thenReturn("TEST");
+        
         testPrivateKey = new String(Files.readAllBytes(
             Path.of(ClassLoader.getSystemResource("ssh/test_private_key.rsa").getPath()))
         );
         testPassphrase = String.join("", Files.readAllLines(
             Path.of(ClassLoader.getSystemResource("ssh/test_passphrase").getPath())
         ));
-        mockSftpServer = new MockSftpServer();
-        mockSftpServer.startServer();
     }
 
     @AfterEach
     public void tearDown() throws Exception {
         mockSftpServer.stopServer();
+        constantsMockedStatic.close();
+        dependencyFactoryMockedStatic.close();
     }
 
     @Test
-    void handleRequest_shouldSuccessValue() throws GeneralSecurityException, IOException {
-        S3Client mockS3Client = mock(S3Client.class);
-        SsmClient mockSsmClient = mock(SsmClient.class);
-        
-        try (MockedStatic<DependencyFactory> dependencyFactoryMockedStatic = mockStatic(DependencyFactory.class, CALLS_REAL_METHODS);
-             MockedStatic<Constants> constantsMockedStatic = mockStatic(Constants.class)) {
-            
-            dependencyFactoryMockedStatic.when(DependencyFactory::s3Client).thenReturn(mockS3Client);
-            dependencyFactoryMockedStatic.when(DependencyFactory::ssmClient).thenReturn(mockSsmClient);
-            constantsMockedStatic.when(Constants::getSftpPort).thenReturn(mockSftpServer.getPort());
-            constantsMockedStatic.when(Constants::getSftpHost).thenReturn(mockSftpServer.getHost());
-            constantsMockedStatic.when(Constants::getSftpUsername).thenReturn(TEST_SERVER_USERNAME);
+    void handleRequest_shouldReturnCandidate() throws GeneralSecurityException, IOException {
+        when(mockSsmClient.getParameter(any(GetParameterRequest.class)))
+            .thenReturn(ssmParameterResponseBuilder(testPassphrase))
+            .thenReturn(ssmParameterResponseBuilder(testPrivateKey));
 
-            when(mockSsmClient.getParameter(any(GetParameterRequest.class)))
-                .thenReturn(ssmParameterResponseBuilder(testPassphrase))
-                .thenReturn(ssmParameterResponseBuilder(testPrivateKey));
+        App function = new App();
+        Candidate result = function.handleRequest(null, mockContext);
+        assertTrue(result.s3Key().contains(V03_FILENAME));
+        assertTrue(result.proceed());
 
-            App function = new App();
-            String result = function.handleRequest(null, context);
-            assertEquals("Success: downloaded BIN ranges from Worldpay", result);
-
-            verify(mockS3Client, atMost(2)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
-            dependencyFactoryMockedStatic.verify(DependencyFactory::s3Client);
-            dependencyFactoryMockedStatic.verify(DependencyFactory::ssmClient);
-            dependencyFactoryMockedStatic.verify(() -> DependencyFactory.sshClient(any(Path.class), eq(testPassphrase)));
-        }
+        verify(mockS3Client, atMost(2)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+        dependencyFactoryMockedStatic.verify(DependencyFactory::s3Client);
+        dependencyFactoryMockedStatic.verify(DependencyFactory::ssmClient);
+        dependencyFactoryMockedStatic.verify(() -> DependencyFactory.sshClient(any(Path.class), eq(testPassphrase)));
     }
 
     private GetParameterResponse ssmParameterResponseBuilder(String parameterValue) {

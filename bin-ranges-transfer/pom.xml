@@ -21,6 +21,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>uk.gov.pay</groupId>
+            <artifactId>common</artifactId>
+        </dependency>
+        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
             <exclusions>
@@ -100,6 +104,7 @@
                         <AWS_ACCOUNT_NAME>test</AWS_ACCOUNT_NAME>
                         <AWS_REGION>eu-west-1</AWS_REGION>
                         <S3_BUCKET_NAME>bin-ranges-staging-test</S3_BUCKET_NAME>
+                        <WORLDPAY_FILE_VERSION>V03</WORLDPAY_FILE_VERSION>
                     </environmentVariables>
                 </configuration>
             </plugin>
@@ -112,7 +117,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <configuration>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
-                    <finalName>bin-ranges-transfer</finalName>
+                    <finalName>${project.artifactId}</finalName>
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>
