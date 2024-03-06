@@ -3,6 +3,7 @@ package uk.gov.pay.java_lambdas.bin_ranges_transfer.util;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import uk.gov.pay.java_lambdas.bin_ranges_transfer.model.Version;
 
@@ -18,13 +19,16 @@ import static uk.gov.pay.java_lambdas.bin_ranges_transfer.util.Utils.extractDate
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.util.Utils.extractVersion;
 
 class UtilsTest {
-    
-    private static final String BIN_RANGE_VERSION_NOT_RECOGNISED_ERROR_MESSAGE = "File version not recognised";
     private static final String BIN_RANGE_VERSION_NOT_FOUND_ERROR_MESSAGE = "No version string found in file name";
     private static final String BIN_RANGE_DATE_NOT_FOUND_ERROR_MESSAGE = "No date string found in file name";
     
     @ParameterizedTest
-    @MethodSource
+    @CsvSource({
+        "WP_341BIN_V04_20240212_001.CSV,2024-02-12", 
+        "WP_341BIN_V03_20240102_001.CSV,2024-01-02",
+        "WP_341BIN_V04_20221111_001.CSV,2022-11-11",
+        "WP_341BIN_V03_19911122_001.CSV,1991-11-22",
+    })
     void extractDateString_shouldReturnDateString_whenPresent (String input, String expected) {
         String result = extractDateString(input);
         assertEquals(expected, result);
@@ -39,7 +43,11 @@ class UtilsTest {
     }
 
     @ParameterizedTest
-    @MethodSource
+    @CsvSource({
+        "WP_341BIN_V04_00000000_001.CSV",
+        "WP_341BIN_V04_20242311_001.CSV",
+        "WP_341BIN_V04_20001035_001.CSV"
+    })
     void extractDateString_shouldThrowException_whenDateStringIsInvalid (String input) {
         assertThrows(DateTimeParseException.class, () -> extractDateString(input));
     }
@@ -63,6 +71,7 @@ class UtilsTest {
         assertEquals(expected, result);
     }
 
+
     @ParameterizedTest
     @MethodSource
     void extractVersion_shouldThrowException_whenVersionIsMissingOrInvalidOrNotRecognised (String input, String expected) {
@@ -72,23 +81,6 @@ class UtilsTest {
     }
     
     // ---- PRIVATE
-    
-    private static Stream<Arguments> extractDateString_shouldReturnDateString_whenPresent() {
-        return Stream.of(
-            Arguments.of("WP_341BIN_V04_20240212_001.CSV", "2024-02-12"),
-            Arguments.of("WP_341BIN_V03_20240102_001.CSV", "2024-01-02"),
-            Arguments.of("WP_341BIN_V04_20221111_001.CSV", "2022-11-11"),
-            Arguments.of("WP_341BIN_V03_19911122_001.CSV", "1991-11-22")
-        );
-    }
-    
-    private static Stream<Arguments> extractDateString_shouldThrowException_whenDateStringIsInvalid() {
-        return Stream.of(
-            Arguments.of("WP_341BIN_V04_00000000_001.CSV"),
-            Arguments.of("WP_341BIN_V04_20242311_001.CSV"),
-            Arguments.of("WP_341BIN_V04_20001035_001.CSV")
-        );
-    }
 
     private static Stream<Arguments> extractVersion_shouldReturnVersion_whenPresent() {
         return Stream.of(

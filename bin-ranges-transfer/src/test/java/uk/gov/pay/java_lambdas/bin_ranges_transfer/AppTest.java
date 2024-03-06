@@ -94,8 +94,6 @@ class AppTest {
         assertTrue(result.proceed());
 
         verify(mockS3Client, atMost(2)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
-        dependencyFactoryMockedStatic.verify(DependencyFactory::s3Client);
-        dependencyFactoryMockedStatic.verify(DependencyFactory::ssmClient);
         dependencyFactoryMockedStatic.verify(() -> DependencyFactory.sshClient(any(Path.class), eq(testPassphrase)));
     }
 

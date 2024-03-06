@@ -30,6 +30,7 @@ import static uk.gov.pay.java_lambdas.bin_ranges_diff.config.Constants.S3_STAGIN
 
 public class App implements RequestHandler<Candidate, Candidate> {
     private static final Logger logger = LoggerFactory.getLogger(App.class);
+    private static final Base64.Encoder base64Encoder = Base64.getEncoder();
     private final S3Client s3Client;
 
     public App() {
@@ -39,30 +40,21 @@ public class App implements RequestHandler<Candidate, Candidate> {
     @Override
     public Candidate handleRequest(Candidate candidate, final Context context) {
         logger.info("fn: {}, version: {}.", context.getFunctionName(), context.getFunctionVersion());
-        var digests = getShaDigestsFromS3(candidate.s3Key());
-        logger.info("Object SHAs [candidate: {}] [promoted: {}]", digests.left(), digests.right());
-        return digests.left().equals(digests.right()) 
+        Pair<String, String> digests = getShaDigestsFromS3(candidate.s3Key());
+        var candidateSha = digests.left();
+        var promotedSha = digests.right();
+        logger.info("Object SHAs [candidate: {}] [promoted: {}]", candidateSha, promotedSha);
+        return candidateSha.equals(promotedSha)
             ? Candidate.from(candidate, false)
             : Candidate.from(candidate, true);
     }
 
     private Pair<String, String> getShaDigestsFromS3(String candidateKey) {
-
-//        var promotedBinRangesHeadObject = s3Client.headObject(RequestBuilder.headObjectRequest(S3_PROMOTED_BUCKET_NAME, PROMOTED_BIN_RANGES_S3_KEY));
-//        var existingDigest = Optional.ofNullable(promotedBinRangesHeadObject.metadata().get("sha256MessageDigest"));
-//        
-//        if (existingDigest.isPresent()) {
-//            
-//        }
+        // todo: check for pre-existing sha digests on the promoted head object
 
         var getCandidateBinRangesRequest = RequestBuilder.getObjectRequest(S3_STAGING_BUCKET_NAME, candidateKey);
         var getPromotedBinRangesRequest = RequestBuilder.getObjectRequest(S3_PROMOTED_BUCKET_NAME, PROMOTED_BIN_RANGES_S3_KEY);
 
-        return getSha256MessageDigests(getCandidateBinRangesRequest, getPromotedBinRangesRequest);
-    }
-
-
-    private Pair<String, String> getSha256MessageDigests(GetObjectRequest getCandidateBinRangesRequest, GetObjectRequest getPromotedBinRangesRequest) {
         List<GetObjectRequest> requests = Arrays.asList(getCandidateBinRangesRequest, getPromotedBinRangesRequest);
         Map<String, String> objectDigests = new ConcurrentHashMap<>();
 
@@ -72,25 +64,18 @@ public class App implements RequestHandler<Candidate, Candidate> {
 
                 logger.debug("Creating SHA-256 digest for {}", req.key());
                 MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+                reader.lines()
+                    .skip(1) // Skip the first line as it includes the date the file was published
+                    .map(line -> line.getBytes(StandardCharsets.UTF_8))
+                    .forEach(messageDigest::update);
 
-                String line;
-                boolean firstLine = true; // skip the first line as it includes the date the file was published
-
-                while ((line = reader.readLine()) != null) {
-                    if (firstLine) {
-                        logger.debug("Ignored first line: {}", line);
-                        firstLine = false;
-                        continue;
-                    }
-                    messageDigest.update(line.getBytes(StandardCharsets.UTF_8));
-                }
-
-                byte[] shaBytes = messageDigest.digest();
-                String base64Sha = Base64.getEncoder().encodeToString(shaBytes);
+                String base64Sha = base64Encoder.encodeToString(messageDigest.digest());
                 objectDigests.put(req.key(), base64Sha);
                 logger.debug("Generated SHA-256 digest for {}: {}", req.key(), base64Sha);
-            } catch (IOException | NoSuchAlgorithmException e) {
+            } catch (IOException e) {
                 logger.error("Error reading file from S3: {}", e.getMessage());
+            } catch (NoSuchAlgorithmException e) {
+                logger.error("This should never happen: {}", e.getMessage());
             }
         });
         return Pair.of(
