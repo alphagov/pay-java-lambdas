@@ -1,16 +1,21 @@
 package uk.gov.pay.java_lambdas.bin_ranges_diff;
 
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.services.s3.S3Client;
+
+import static uk.gov.pay.java_lambdas.bin_ranges_diff.config.Constants.AWS_REGION;
 
 public class DependencyFactory {
 
-    private DependencyFactory() {}
+    private DependencyFactory() {
+    }
 
     public static S3Client s3Client() {
-        Region region = Region.EU_WEST_1;
         return S3Client.builder()
-                .region(region)
-                .build();
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .region(AWS_REGION)
+            .httpClientBuilder(AwsCrtHttpClient.builder())
+            .build();
     }
 }

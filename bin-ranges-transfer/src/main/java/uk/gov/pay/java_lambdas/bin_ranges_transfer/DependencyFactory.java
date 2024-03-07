@@ -28,6 +28,8 @@ import static uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants.AWS_R
  * The module containing all dependencies required by the {@link App}.
  */
 public class DependencyFactory {
+    
+    public static final int SFTP_VERSION = 3;
 
     private DependencyFactory() {
     }
@@ -63,6 +65,6 @@ public class DependencyFactory {
 
     public static SftpClient sftpClient(ClientSession session) throws IOException {
         return SftpClientFactory.instance()
-            .createSftpClient(session, 3);
+            .createSftpClient(session, SFTP_VERSION);
     }
 }

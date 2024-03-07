@@ -14,11 +14,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class MockSftpServer {
+public class TestSftpServer {
 
     private SshServer sshServer;
-    private Path mockDir;
+    private Path testDirectory;
     public static final String TEST_SERVER_USERNAME = "test_user"; 
+    public static final String V03_FILENAME = "WP_341BIN_V03_20240212_001.CSV";
+    public static final String V04_FILENAME = "WP_341BIN_V04_20240212_001.CSV";
 
     public void startServer() throws IOException {
         sshServer = SshServer.setUpDefaultServer();
@@ -48,8 +50,8 @@ public class MockSftpServer {
     public void stopServer() throws IOException {
         if (sshServer != null) {
             sshServer.stop(true);
-            if (mockDir != null) {
-                Files.walk(mockDir)
+            if (testDirectory != null) {
+                Files.walk(testDirectory)
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
                     .forEach(File::delete);
@@ -58,12 +60,12 @@ public class MockSftpServer {
     }
 
     private void configureFileSystem(SshServer sshServer) throws IOException {
-        mockDir = Files.createTempDirectory("testDir");
-        Path nestedDirs = mockDir.resolve("Streamline/Universal");
+        testDirectory = Files.createTempDirectory("testDir");
+        Path nestedDirs = testDirectory.resolve("Streamline/Universal");
         Files.createDirectories(nestedDirs);
 
         List<String> filenames = Arrays.asList(
-            "WP_341BIN_V03_20240212_001.CSV", "WP_341BIN_V04_20240212_001.CSV",
+            V03_FILENAME, V04_FILENAME,
             "WP_CPC2_311FXR_20240207_001.CSV", "WP_CPC2_311FXR_20240208_001.CSV",
             "WP_CPC2_311FXR_20240209_001.CSV", "WP_CPC2_311FXR_20240212_001.CSV",
             "WP_CPC2_311FXR_20240213_001.CSV", "WP_CPCX_311FXR_20240207_001.CSV",
@@ -80,7 +82,7 @@ public class MockSftpServer {
             }
         });
 
-        VirtualFileSystemFactory fileSystemFactory = new VirtualFileSystemFactory(mockDir);
+        VirtualFileSystemFactory fileSystemFactory = new VirtualFileSystemFactory(testDirectory);
         sshServer.setFileSystemFactory(fileSystemFactory);
 
     }
