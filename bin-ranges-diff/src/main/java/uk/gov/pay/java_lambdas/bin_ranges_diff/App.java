@@ -30,7 +30,7 @@ import static uk.gov.pay.java_lambdas.bin_ranges_diff.config.Constants.S3_STAGIN
 
 public class App implements RequestHandler<Candidate, Candidate> {
     private static final Logger logger = LoggerFactory.getLogger(App.class);
-    private static final Base64.Encoder base64Encoder = Base64.getEncoder();
+    private static final Base64.Encoder BASE_64_ENCODER = Base64.getEncoder();
     private final S3Client s3Client;
 
     public App() {
@@ -69,7 +69,7 @@ public class App implements RequestHandler<Candidate, Candidate> {
                     .map(line -> line.getBytes(StandardCharsets.UTF_8))
                     .forEach(messageDigest::update);
 
-                String base64Sha = base64Encoder.encodeToString(messageDigest.digest());
+                String base64Sha = BASE_64_ENCODER.encodeToString(messageDigest.digest());
                 objectDigests.put(req.key(), base64Sha);
                 logger.debug("Generated SHA-256 digest for {}: {}", req.key(), base64Sha);
             } catch (IOException e) {

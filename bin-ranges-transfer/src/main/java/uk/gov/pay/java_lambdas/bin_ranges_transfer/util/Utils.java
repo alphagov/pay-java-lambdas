@@ -17,8 +17,8 @@ import java.util.regex.Pattern;
 public class Utils {
 
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
-    private static final Pattern datePattern = Pattern.compile("\\d{8}");
-    private static final Pattern versionPattern = Pattern.compile("V\\d{2}");
+    private static final Pattern DATE_PATTERN = Pattern.compile("\\d{8}");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("V\\d{2}");
 
     private Utils() {
     }
@@ -41,7 +41,7 @@ public class Utils {
     }
 
     public static String extractDateString(String fileName) throws DateTimeParseException {
-        Matcher matcher = datePattern.matcher(fileName);
+        Matcher matcher = DATE_PATTERN.matcher(fileName);
 
         if (matcher.find()) {
             String dateString = matcher.group();
@@ -58,7 +58,7 @@ public class Utils {
     }
     
     public static Version extractVersion(String fileName) throws IllegalArgumentException {
-        Matcher matcher = versionPattern.matcher(fileName);
+        Matcher matcher = VERSION_PATTERN.matcher(fileName);
 
         if (matcher.find()) {
             String versionString = matcher.group();

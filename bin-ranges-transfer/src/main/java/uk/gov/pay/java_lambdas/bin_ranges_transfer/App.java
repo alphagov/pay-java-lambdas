@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParameterResponse;
+import uk.gov.pay.java_lambdas.bin_ranges_transfer.exception.SshConnectionException;
 import uk.gov.pay.java_lambdas.bin_ranges_transfer.model.BinRangeSftpDownload;
 import uk.gov.pay.java_lambdas.common.bin_ranges.dto.Candidate;
 
@@ -57,10 +58,9 @@ public class App implements RequestHandler<Void, Candidate> {
     public Candidate handleRequest(Void input, final Context context) {
         logger.info("fn: {}, version: {}.", context.getFunctionName(), context.getFunctionVersion());
         sshClient.start();
-        try {
-            ClientSession session = sshClient.connect(getSftpUsername(), getSftpHost(), getSftpPort())
-                .verify()
-                .getSession();
+        try (ClientSession session = sshClient.connect(getSftpUsername(), getSftpHost(), getSftpPort())
+            .verify()
+            .getSession()) {
 
             logger.debug("Authorising SFTP session");
             session.auth().verify(10, TimeUnit.SECONDS);
@@ -82,13 +82,12 @@ public class App implements RequestHandler<Void, Candidate> {
                     var candidateKey = streamFilesToS3(sftpClient, downloadList);
                     return new Candidate(candidateKey, true);
                 } else {
-                    logger.error("No BIN ranges data found on server");
-                    throw new IOException();
+                    logger.warn("No BIN ranges data found on server");
+                    return new Candidate(null, false);
                 }
             }
         } catch (IOException e) {
-            logger.error(e.getMessage());
-            return null;
+            throw new SshConnectionException(e.getMessage());
         } finally {
             sshClient.stop();
         }

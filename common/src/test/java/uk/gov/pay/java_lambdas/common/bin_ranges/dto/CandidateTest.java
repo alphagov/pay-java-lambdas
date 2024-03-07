@@ -20,6 +20,7 @@ class CandidateTest {
     void from() {
         var expected = new Candidate("an/s3/key.csv", true, Instant.now());
         var result = Candidate.from(expected, false);
+        
         assertEquals(expected.s3Key(), result.s3Key());
         assertEquals(expected.time(), result.time());
         assertTrue(expected.proceed());
@@ -28,13 +29,12 @@ class CandidateTest {
 
     @Test
     void candidate_ShouldSerialize_andDeserialize() throws JsonProcessingException {
+        var expected = new Candidate("an/s3/key.csv", true, Instant.now());
+        var jsonStr = objectMapper.writeValueAsString(expected);
+        var result = objectMapper.readValue(jsonStr, Candidate.class);
 
-        Candidate candidate = new Candidate("an/s3/key.csv", true, Instant.now());
-        String json = objectMapper.writeValueAsString(candidate);
-        Candidate result = objectMapper.readValue(json, Candidate.class);
-
-        assertEquals(candidate.s3Key(), result.s3Key());
-        assertEquals(candidate.proceed(), result.proceed());
-        assertEquals(candidate.time(), result.time());
+        assertEquals(expected.s3Key(), result.s3Key());
+        assertEquals(expected.proceed(), result.proceed());
+        assertEquals(expected.time(), result.time());
     }
 }
