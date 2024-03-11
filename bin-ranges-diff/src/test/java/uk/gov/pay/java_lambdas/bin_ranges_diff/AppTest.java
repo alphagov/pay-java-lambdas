@@ -33,10 +33,8 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AppTest {
-
     @Mock
     private Context context;
-
     @Mock
     private S3Client mockS3Client;
     private MockedStatic<Constants> constantsMockedStatic;
