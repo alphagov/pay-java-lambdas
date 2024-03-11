@@ -49,7 +49,6 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class AppTest {
-
     @Mock
     private Context mockContext;
     @Mock
