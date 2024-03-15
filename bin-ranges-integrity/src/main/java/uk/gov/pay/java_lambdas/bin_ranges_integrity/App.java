@@ -17,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -114,8 +115,20 @@ public class App implements RequestHandler<Candidate, Candidate> {
         String binLowerRangeStr = currentRow.get("BIN Lower Range");
         String binUpperRangeSr = currentRow.get("BIN Upper Range");
         String productType = currentRow.get("Product Type");
-        int binStart = Integer.parseInt(binLowerRangeStr);
-        int binEnd = Integer.parseInt(binUpperRangeSr);
+        String cardSchemeBrandName = currentRow.get("Card Scheme Brand Name");
+        String issuerName = currentRow.get("Issuer Name");
+        String issuerCountryCode = currentRow.get("Issuer Country Code");
+        String cardClass = currentRow.get("Card Class");
+        String cardholderCurrencyCode = currentRow.get("Cardholder Currency Code");
+        String dccFlag = currentRow.get("DCC Flag");
+        String anonymousPPMarker = currentRow.get("Anonymous Pre-Paid Marker");
+        String acceptsGamingOctPayments = currentRow.get("Accepts Gaming OCT Payments");
+        String tokenisedFlag = currentRow.get("Tokenised Flag");
+        String panLengthStr = currentRow.get("Pan Length");
+        String fastFundsIndicator = currentRow.get("Fast Funds Indicator");
+        long panLength = Long.parseLong(panLengthStr.isEmpty() ? "0" : panLengthStr);
+        long binStart = Long.parseLong(binLowerRangeStr);
+        long binEnd = Long.parseLong(binUpperRangeSr);
         if (!headerRecord.equals("01")) {
             logger.error("Expected bin data rows to have a 01 header record as per the documentation, actual value was {}.", headerRecord);
             return false;
@@ -134,6 +147,50 @@ public class App implements RequestHandler<Candidate, Candidate> {
         }
         if (!productType.equals("CN") && !productType.equals("CP")) {
             logger.error("Product type is expected to be CN or CP but the value was {}.", productType);
+            return false;
+        }
+        if (cardSchemeBrandName.length() < 2) {
+            logger.error("Card Scheme Brand Name should be at least 2 chars long, {} was provided.", cardSchemeBrandName);
+            return false;
+        }
+        if (issuerName.length() < 2) {
+            logger.error("Issuer Name should be at least 2 chars long, {} was provided.", cardSchemeBrandName);
+            return false;
+        }
+        if (issuerCountryCode.length() != 3) {
+            logger.error("Issuer country code should be exactly three digits long but {} was provided", issuerCountryCode);
+            return false;
+        }
+        if (!cardClass.equals("C") && !cardClass.equals("D") && !cardClass.equals("P")) {
+            logger.error("Card class is expected to be C, D or P but the value was {}.", cardClass);
+            return false;
+        }
+        if (cardholderCurrencyCode.length() != 3) {
+            logger.error("Cardholder Currency Code should be exactly 3 chars long, {} was provided.", cardholderCurrencyCode);
+            return false;
+        }
+        if (!dccFlag.isEmpty() && !dccFlag.equals("DCC allowed")) {
+            logger.error("DCC Flag can only be empty or exactly 'DCC allowed', {} was provided. {} == {}", dccFlag);
+            return false;
+        }
+        if (!anonymousPPMarker.equals("N") && !anonymousPPMarker.equals("E") && !anonymousPPMarker.equals("A") && !anonymousPPMarker.equals("U")) {
+            logger.error("Anonymous Pre-Paid Flag can only contain N, E, A, or U. {} was provided.", anonymousPPMarker);
+            return false;
+        }
+        if (!acceptsGamingOctPayments.isEmpty() && !acceptsGamingOctPayments.equals("Y") && !acceptsGamingOctPayments.equals("N")) {
+            logger.error("Gaming OCT Payements can only contain Y, N, or be blank. {} was provided.", acceptsGamingOctPayments);
+            return false;
+        }
+        if (!tokenisedFlag.isEmpty() && !tokenisedFlag.equals("Y")) {
+            logger.error("Tokenised Flag can only contain Y or be blank. {} was provided.", tokenisedFlag);
+            return false;
+        }
+        if (panLength > 19) {
+            logger.error("Pan length is greater than 19, {} was provided", panLengthStr);
+            return false;
+        }
+        if (!fastFundsIndicator.isEmpty() && !fastFundsIndicator.equals("D") && !fastFundsIndicator.equals("N") && !fastFundsIndicator.equals("Y") && !fastFundsIndicator.equals("C")) {
+            logger.error("Fast Funds Indicator can only contain D, N, Y, C, or be blank. {} was provided.", fastFundsIndicator);
             return false;
         }
         return true;
@@ -169,26 +226,28 @@ public class App implements RequestHandler<Candidate, Candidate> {
                 .addColumn("Header Record", CsvSchema.ColumnType.STRING)
                 .addColumn("BIN Lower Range", CsvSchema.ColumnType.NUMBER)
                 .addColumn("BIN Upper Range", CsvSchema.ColumnType.NUMBER)
-                .addColumn("Product Type")
-                .addColumn("Card Scheme Brand Name")
-                .addColumn("Issuer Name")
-                .addColumn("Issuer Country Code")
-                .addColumn("Issuer Country Code Numeric")
-                .addColumn("Issuer Country Name")
-                .addColumn("Card Class")
-                .addColumn("Cardholder Currency Code")
-                .addColumn("DDC Flag")
-                .addColumn("Scheme Product")
-                .addColumn("Anonymous Pre-Paid Marker")
-                .addColumn("Accepts Gaming OCT Payments")
-                .addColumn("Tokenised Flag")
-                .addColumn("Pan Length")
-                .addColumn("Fast Funds Indicator")
-                .addColumn("Reservered 19")
-                .addColumn("Reservered 20")
-                .addColumn("Reservered 21")
-                .addColumn("Reservered 22")
-                .addColumn("Reservered 23")
+                .addColumn("Product Type", CsvSchema.ColumnType.STRING)
+                .addColumn("Card Scheme Brand Name", CsvSchema.ColumnType.STRING)
+                .addColumn("Issuer Name", CsvSchema.ColumnType.STRING)
+                .addColumn("Issuer Country Code", CsvSchema.ColumnType.STRING)
+                .addColumn("Issuer Country Code Numeric", CsvSchema.ColumnType.NUMBER)
+                .addColumn("Issuer Country Name", CsvSchema.ColumnType.STRING)
+                .addColumn("Card Class", CsvSchema.ColumnType.STRING)
+                .addColumn("Cardholder Currency Code", CsvSchema.ColumnType.STRING)
+                .addColumn("DCC Flag", CsvSchema.ColumnType.STRING)
+                .addColumn("Scheme Product", CsvSchema.ColumnType.STRING)
+                .addColumn("Anonymous Pre-Paid Marker", CsvSchema.ColumnType.STRING)
+                .addColumn("Accepts Gaming OCT Payments", CsvSchema.ColumnType.STRING)
+                .addColumn("Tokenised Flag", CsvSchema.ColumnType.STRING)
+                .addColumn("Pan Length", CsvSchema.ColumnType.NUMBER)
+                .addColumn("Fast Funds Indicator", CsvSchema.ColumnType.STRING)
+                .addColumn("Reservered 19", CsvSchema.ColumnType.STRING)
+                .addColumn("Reservered 20", CsvSchema.ColumnType.STRING)
+                .addColumn("Reservered 21", CsvSchema.ColumnType.STRING)
+                .addColumn("Reservered 22", CsvSchema.ColumnType.STRING)
+                .addColumn("Reservered 23", CsvSchema.ColumnType.STRING)
+                .addColumn("Reservered 24", CsvSchema.ColumnType.STRING)
+                .addColumn("Reservered 25", CsvSchema.ColumnType.STRING)
                 .build();
             CsvMapper mapper = new CsvMapper();
             MappingIterator<Map<String, String>> it = mapper
