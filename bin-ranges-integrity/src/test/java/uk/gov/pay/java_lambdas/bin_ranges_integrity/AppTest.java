@@ -60,12 +60,18 @@ class AppTest {
     @ParameterizedTest
     @CsvSource({
         "baseline,true", 
+        "massive,false",
         "tiny,false",
         "acceptably-large,true",
         "acceptably-small,true",
         "just-too-large,false",
-        "just-too-small,false"
+        "just-too-small,false",
+        "malformed-missing-end,false",
+        "malformed-missing-binrange,false",
+        "missing-first-row,false",
+        "missing-last-row,false"
     })
+
     void handleRequest_baselineShouldProceed(String input, boolean expected) throws IOException {
         String baselineDataPath = Paths.get("src/test/resources/testData/candidate_baseline.csv").toString();
         String candidateDataPath = Paths.get("src/test/resources/testData", format("candidate_%s.csv", input)).toString();
