@@ -34,8 +34,8 @@ public class App implements RequestHandler<Candidate, Candidate> {
     @Override
     public Candidate handleRequest(Candidate candidate, final Context context) {
         logger.info("fn: {}, version: {}.", context.getFunctionName(), context.getFunctionVersion());
-        List<String> linesFromS3File = getLinesFromS3File(S3_STAGING_BUCKET_NAME, candidate.s3Key());
-        if (linesFromS3File == null) {
+        List<String> linesFromS3CandidateFile = getLinesFromS3File(S3_STAGING_BUCKET_NAME, candidate.s3Key());
+        if (linesFromS3CandidateFile == null) {
             logger.error("Failed to read file contents {}", candidate.s3Key());
             return Candidate.from(candidate, false);
         }
@@ -45,16 +45,16 @@ public class App implements RequestHandler<Candidate, Candidate> {
             return Candidate.from(candidate, false);
         }
 
-        if (!validateFileLength(linesFromS3File, linesFromS3PromotedFile)) {
+        if (!validateFileLength(linesFromS3CandidateFile, linesFromS3PromotedFile)) {
             return Candidate.from(candidate, false);
         }
 
-        boolean shouldProceed = validateRowContents(linesFromS3File);
+        boolean shouldProceed = validateRowContents(linesFromS3CandidateFile);
         return Candidate.from(candidate, shouldProceed);
     }
 
     private static boolean validateRowContents(List<String> linesFromS3File) {
-
+        int lineCount = 0;
         MappingIterator<Map<String, String>> it = parseCsv(linesFromS3File);
 
         if (null == it) {
@@ -63,17 +63,23 @@ public class App implements RequestHandler<Candidate, Candidate> {
         }
         try {
             Map<String, String> firstRow = it.nextValue();
+            lineCount++;
             if (!validateFirstRow(firstRow)) {
+                logger.info("Failed on line {}", lineCount);
                 return false;
             }
             while (it.hasNextValue()) {
                 Map<String, String> currentRow = it.nextValue();
+                lineCount++;
+
                 if (it.hasNextValue()) {
                     if (!validateMiddleRow(currentRow)) {
+                        logger.info("Failed on line {}", lineCount);
                         return false;
                     }
                 } else {
                     if (!validateFinalRow(currentRow)) {
+                        logger.info("Failed on line {}", lineCount);
                         return false;
                     }
                 }
@@ -153,8 +159,18 @@ public class App implements RequestHandler<Candidate, Candidate> {
             logger.error("Card Scheme Brand Name should be at least 2 chars long, {} was provided.", cardSchemeBrandName);
             return false;
         }
+        int maxCardSchemeBrandNameLength = 30;
+        if (cardSchemeBrandName.length() > maxCardSchemeBrandNameLength) {
+            logger.error("Card Scheme Brand Name no more than {} chars long, {} was provided with length of {}.", maxCardSchemeBrandNameLength, cardSchemeBrandName, cardSchemeBrandName.length());
+            return false;
+        }
         if (issuerName.length() < 2) {
             logger.error("Issuer Name should be at least 2 chars long, {} was provided.", cardSchemeBrandName);
+            return false;
+        }
+        int maxIssuerNameLength = 80;
+        if (issuerName.length() > maxIssuerNameLength) {
+            logger.error("Issuer Name should be at no more than {} chars long, {} was provided with length of {}.", maxIssuerNameLength, issuerName, issuerName.length());
             return false;
         }
         if (issuerCountryCode.length() != 3) {
@@ -170,7 +186,7 @@ public class App implements RequestHandler<Candidate, Candidate> {
             return false;
         }
         if (!dccFlag.isEmpty() && !dccFlag.equals("DCC allowed")) {
-            logger.error("DCC Flag can only be empty or exactly 'DCC allowed', {} was provided. {} == {}", dccFlag);
+            logger.error("DCC Flag can only be empty or exactly 'DCC allowed', {} was provided.", dccFlag);
             return false;
         }
         if (!anonymousPPMarker.equals("N") && !anonymousPPMarker.equals("E") && !anonymousPPMarker.equals("A") && !anonymousPPMarker.equals("U")) {
@@ -248,7 +264,8 @@ public class App implements RequestHandler<Candidate, Candidate> {
                 .addColumn("Reservered 23", CsvSchema.ColumnType.STRING)
                 .addColumn("Reservered 24", CsvSchema.ColumnType.STRING)
                 .addColumn("Reservered 25", CsvSchema.ColumnType.STRING)
-                .build();
+                .build()
+                .withoutQuoteChar();
             CsvMapper mapper = new CsvMapper();
             MappingIterator<Map<String, String>> it = mapper
                 .readerForMapOf(String.class)
