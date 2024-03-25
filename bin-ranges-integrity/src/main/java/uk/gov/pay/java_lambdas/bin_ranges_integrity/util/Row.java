@@ -1,6 +1,6 @@
 package uk.gov.pay.java_lambdas.bin_ranges_integrity.util;
 
-public final class FieldName {
+public final class Row {
     public static final String HEADER_RECORD = "HEADER_RECORD";
     public static final String BIN_LOWER_RANGE = "BIN_LOWER_RANGE";
     public static final String BIN_UPPER_RANGE = "BIN_UPPER_RANGE";
