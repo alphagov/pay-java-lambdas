@@ -1,5 +1,7 @@
 package uk.gov.pay.java_lambdas.bin_ranges_integrity;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -18,4 +20,10 @@ public class DependencyFactory {
             .httpClientBuilder(AwsCrtHttpClient.builder())
             .build();
     }
+
+    public static Logger logger() {
+        return LoggerFactory.getLogger(App.class);
+    }
+
+    
 }
