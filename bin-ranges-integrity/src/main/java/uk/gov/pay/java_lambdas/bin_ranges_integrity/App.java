@@ -9,25 +9,20 @@ import org.slf4j.Logger;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import uk.gov.pay.java_lambdas.bin_ranges_integrity.util.Row;
 import uk.gov.pay.java_lambdas.bin_ranges_integrity.util.RequestBuilder;
-import uk.gov.pay.java_lambdas.bin_ranges_integrity.util.validators.CsvFirstRow;
-import uk.gov.pay.java_lambdas.bin_ranges_integrity.util.validators.CsvLastRow;
+
 import uk.gov.pay.java_lambdas.bin_ranges_integrity.util.validators.CsvMiddleRow;
-import uk.gov.pay.java_lambdas.bin_ranges_integrity.util.validators.CsvRow;
 import uk.gov.pay.java_lambdas.common.bin_ranges.dto.Candidate;
 
-import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
 
 import static uk.gov.pay.java_lambdas.bin_ranges_integrity.config.Constants.*;
 
@@ -55,7 +50,7 @@ public class App implements RequestHandler<Candidate, Candidate> {
         }
 
         try {
-            parseCsv(linesFromS3CandidateFile);
+            validateCsv(linesFromS3CandidateFile);
             return Candidate.from(candidate, true);
         } catch (Exception e) {
             logger.error("CSV parsing failled with error", e);
@@ -78,33 +73,44 @@ public class App implements RequestHandler<Candidate, Candidate> {
     }
 
 
-    public void parseCsv(List<String> csvLines) throws Exception {
-        String CSV_DOC = String.join("\n", csvLines);
-        CsvMapper mapper = new CsvMapper();
-        CsvSchema schema = CsvSchema.emptySchema().withHeader().withoutQuoteChar();
+    public void validateCsv(List<String> csvLines) throws Exception {
+        // remove first and last elements (junk data we don't care about)
+        List<String> linesToValidate = csvLines.subList(1, csvLines.size() - 1);
+        // todo maybe we can pass the s3 object inputstream directly to readValues() so we don't have rejoin the array
+        String csvContent = String.join("\n", linesToValidate);
 
-        List<Object> rows = mapper
-            .readerFor(CsvRow[].class)
-            .with(schema)
-            .readValues(CSV_DOC)
-            .readAll();
+        CsvMapper mapper = new CsvMapper();
+        CsvSchema schema = mapper.schemaFor(CsvMiddleRow.class).withoutQuoteChar().withoutHeader();
+
+        // todo handle exceptions etc
+        try (StringReader reader = new StringReader(csvContent)) {
+            MappingIterator<CsvMiddleRow> it = mapper.readerFor(CsvMiddleRow.class)
+                .with(schema)
+                .readValues(reader);
+
+            List<CsvMiddleRow> rows = it.readAll();
+
+            for (CsvMiddleRow row : rows) {
+                // do stuff with row if needed, we've hopefully already validated via javax annotations on the class
+            }
+        }
 
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
-        for (int i = 0; i < rows.size(); i++) {
-            Object row = rows.get(i);
-            if (i == 0 && !(row instanceof CsvFirstRow)) {
-                throw new Exception("First row must be of type 00");
-            } else if (i == rows.size() - 1 && !(row instanceof CsvLastRow)) {
-                throw new Exception("Last row must be of type 99");
-            } else if (!(row instanceof CsvMiddleRow)) {
-                throw new Exception("Middle rows must be of type 01");
-            }
-
-            Set<ConstraintViolation<Object>> violations = validator.validate(row);
-            if (!violations.isEmpty()) {
-                throw new Exception("Invalid row: " + violations.toString());
-            }
-        }
+//        for (int i = 0; i < rows.size(); i++) {
+//            Object row = rows.get(i);
+//            if (i == 0 && !(row instanceof CsvFirstRow)) {
+//                throw new Exception("First row must be of type 00");
+//            } else if (i == rows.size() - 1 && !(row instanceof CsvLastRow)) {
+//                throw new Exception("Last row must be of type 99");
+//            } else if (!(row instanceof CsvMiddleRow)) {
+//                throw new Exception("Middle rows must be of type 01");
+//            }
+//
+//            Set<ConstraintViolation<Object>> violations = validator.validate(row);
+//            if (!violations.isEmpty()) {
+//                throw new Exception("Invalid row: " + violations.toString());
+//            }
+//        }
     }
 }
