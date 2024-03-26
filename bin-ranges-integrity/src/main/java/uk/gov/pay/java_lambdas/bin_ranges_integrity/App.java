@@ -81,10 +81,10 @@ public class App implements RequestHandler<Candidate, Candidate> {
     public void parseCsv(List<String> csvLines) throws Exception {
         String CSV_DOC = String.join("\n", csvLines);
         CsvMapper mapper = new CsvMapper();
-        CsvSchema schema = CsvSchema.emptySchema().withHeader();
+        CsvSchema schema = CsvSchema.emptySchema().withHeader().withoutQuoteChar();
 
         List<Object> rows = mapper
-            .readerFor(CsvRow.class)
+            .readerFor(CsvRow[].class)
             .with(schema)
             .readValues(CSV_DOC)
             .readAll();
@@ -101,7 +101,7 @@ public class App implements RequestHandler<Candidate, Candidate> {
                 throw new Exception("Middle rows must be of type 01");
             }
 
-            Set<ConstraintViolation<CsvRow>> violations = validator.validate((CsvRow) row);
+            Set<ConstraintViolation<Object>> violations = validator.validate(row);
             if (!violations.isEmpty()) {
                 throw new Exception("Invalid row: " + violations.toString());
             }

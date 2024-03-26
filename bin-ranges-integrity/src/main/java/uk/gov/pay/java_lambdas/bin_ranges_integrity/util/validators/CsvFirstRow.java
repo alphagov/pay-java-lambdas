@@ -5,4 +5,6 @@ import javax.validation.constraints.Pattern;
 public class CsvFirstRow extends CsvRow {
     @Pattern(regexp = "^00$")
     private String headerRecord;
+    
+    public CsvFirstRow() {}
 }

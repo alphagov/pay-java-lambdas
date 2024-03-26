@@ -111,9 +111,9 @@ class AppTest {
             Candidate result = function.handleRequest(candidate, context);
             assertEquals(expectedResult, result.proceed());
             
-//            if (!"<null>".equals(errorMessage)) {
-//                verify(mockLogger).error(errorMessage);
-//            }
+            if (!"<null>".equals(errorMessage)) {
+                verify(mockLogger).error(errorMessage);
+            }
             
 //            if (lineNumber != -1) {
 //                verify(mockLogger).info("Failed on line [{}]", lineNumber);

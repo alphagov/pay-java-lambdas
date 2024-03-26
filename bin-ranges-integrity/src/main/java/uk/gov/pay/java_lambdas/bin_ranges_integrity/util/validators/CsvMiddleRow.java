@@ -81,4 +81,6 @@ public class CsvMiddleRow extends CsvRow {
     private String reserved23;
     private String reserved24;
     private String reserved25;
+    
+    public CsvMiddleRow() {}
 }

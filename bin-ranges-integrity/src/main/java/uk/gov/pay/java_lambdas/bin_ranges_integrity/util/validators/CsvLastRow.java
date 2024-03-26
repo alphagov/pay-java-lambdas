@@ -5,4 +5,6 @@ import javax.validation.constraints.Pattern;
 public class CsvLastRow extends CsvRow {
     @Pattern(regexp = "^99$")
     private String headerRecord;
+    
+    public CsvLastRow() {}
 }
