@@ -14,7 +14,7 @@ public class Constants {
     public static final String AWS_ACCOUNT_NAME = System.getenv("AWS_ACCOUNT_NAME");
     public static final String SFTP_DIRECTORY = "/Streamline/Universal";
     public static final String SFTP_FILE_PREFIX = "WP_341BIN_";
-    public static final String S3_BUCKET_NAME = format("bin-ranges-staging-%s", AWS_ACCOUNT_NAME);
+    public static final String S3_STAGED_BUCKET_NAME = format("bin-ranges-staged-%s", AWS_ACCOUNT_NAME);
     public static final String PASSPHRASE_PARAMETER_NAME = System.getenv("PASSPHRASE_PARAMETER_NAME");
     public static final String PRIVATE_KEY_PARAMETER_NAME = System.getenv("PRIVATE_KEY_PARAMETER_NAME");
     public static final Version WORLDPAY_FILE_VERSION = Version.fromEnvironment(System.getenv("WORLDPAY_FILE_VERSION"));

@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static uk.gov.pay.java_lambdas.bin_ranges_diff.config.Constants.PROMOTED_BIN_RANGES_S3_KEY;
 import static uk.gov.pay.java_lambdas.bin_ranges_diff.config.Constants.S3_PROMOTED_BUCKET_NAME;
-import static uk.gov.pay.java_lambdas.bin_ranges_diff.config.Constants.S3_STAGING_BUCKET_NAME;
+import static uk.gov.pay.java_lambdas.bin_ranges_diff.config.Constants.S3_STAGED_BUCKET_NAME;
 
 public class App implements RequestHandler<Candidate, Candidate> {
     private static final Logger logger = LoggerFactory.getLogger(App.class);
@@ -52,7 +52,7 @@ public class App implements RequestHandler<Candidate, Candidate> {
     private Pair<String, String> getShaDigestsFromS3(String candidateKey) {
         // todo: check for pre-existing sha digests on the promoted head object
 
-        var getCandidateBinRangesRequest = RequestBuilder.getObjectRequest(S3_STAGING_BUCKET_NAME, candidateKey);
+        var getCandidateBinRangesRequest = RequestBuilder.getObjectRequest(S3_STAGED_BUCKET_NAME, candidateKey);
         var getPromotedBinRangesRequest = RequestBuilder.getObjectRequest(S3_PROMOTED_BUCKET_NAME, PROMOTED_BIN_RANGES_S3_KEY);
 
         List<GetObjectRequest> requests = Arrays.asList(getCandidateBinRangesRequest, getPromotedBinRangesRequest);
