@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants.PASSPHRASE_PARAMETER_NAME;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants.PRIVATE_KEY_PARAMETER_NAME;
-import static uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants.S3_BUCKET_NAME;
+import static uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants.S3_STAGED_BUCKET_NAME;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants.SFTP_DIRECTORY;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants.SFTP_FILE_PREFIX;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants.WORLDPAY_FILE_VERSION;
@@ -99,7 +99,7 @@ public class App implements RequestHandler<Void, Candidate> {
             try (InputStream inputStream = sftpClient.read(sftpDownload.filePath())) {
 
                 PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(S3_BUCKET_NAME)
+                    .bucket(S3_STAGED_BUCKET_NAME)
                     .key(sftpDownload.getS3Key())
                     .build();
 
@@ -110,9 +110,9 @@ public class App implements RequestHandler<Void, Candidate> {
                     candidateKey.set(sftpDownload.getS3Key());
                     logger.debug("Candidate key: {}", sftpDownload.getS3Key());
                 }
-                logger.info("{} streamed and uploaded successfully to {}", sftpDownload.fileName(), S3_BUCKET_NAME);
+                logger.info("{} streamed and uploaded successfully to {}", sftpDownload.fileName(), S3_STAGED_BUCKET_NAME);
             } catch (Exception e) {
-                logger.error("Error streaming file from SFTP to S3 [bucket: {}]: {}", S3_BUCKET_NAME, e.getMessage());
+                logger.error("Error streaming file from SFTP to S3 [bucket: {}]: {}", S3_STAGED_BUCKET_NAME, e.getMessage());
             }
         });
         return candidateKey.get();
