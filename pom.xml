@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>uk.gov.pay</groupId>
     <artifactId>java-lambdas</artifactId>
     <version>1.0-SNAPSHOT</version>
@@ -10,6 +9,14 @@
 
     <name>Pay Java Lambdas</name>
     <url>https://payments.service.gov.uk/</url>
+
+    <modules>
+        <module>bin-ranges-diff</module>
+        <module>bin-ranges-integrity</module>
+        <module>bin-ranges-transfer</module>
+        <module>common</module>
+        <module>bin-ranges-promotion</module>
+    </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -84,6 +91,11 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>tidy-maven-plugin</artifactId>
+                    <version>1.2.0</version>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>3.2.0</version>
@@ -130,12 +142,4 @@
             </plugins>
         </pluginManagement>
     </build>
-
-    <modules>
-        <module>bin-ranges-diff</module>
-        <module>bin-ranges-integrity</module>
-        <module>bin-ranges-transfer</module>
-        <module>common</module>
-    </modules>
-
 </project>
