@@ -57,7 +57,10 @@ public class App implements RequestHandler<Void, Candidate> {
     @Override
     public Candidate handleRequest(Void input, final Context context) {
         logger.info("fn: {}, version: {}.", context.getFunctionName(), context.getFunctionVersion());
-        sshClient.start();
+        // sometimes Lambda reuses the execution context so the client is not stopped when we expect it to be
+        if (!sshClient.isStarted()) {
+            sshClient.start();
+        }
         try (ClientSession session = sshClient.connect(getSftpUsername(), getSftpHost(), getSftpPort())
             .verify()
             .getSession()) {
