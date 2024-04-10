@@ -1,2 +1,0 @@
-bin-ranges-diff
-bin-ranges-integrity
