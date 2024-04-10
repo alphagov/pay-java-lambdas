@@ -3,20 +3,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>uk.gov.pay</groupId>
-        <artifactId>java-lambdas</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
+    <groupId>uk.gov.pay</groupId>
+    <artifactId>java-lambdas</artifactId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
 
-    <artifactId>bin-ranges-transfer</artifactId>
+    <artifactId>bin-ranges-promotion</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>BIN ranges file transfer</name>
-
-    <properties>
-        <sshd.version>2.12.0</sshd.version>
-    </properties>
+    <name>BIN ranges promotion</name>
 
     <dependencies>
         <dependency>
@@ -39,10 +35,6 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>ssm</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-crt-client</artifactId>
         </dependency>
         <dependency>
@@ -61,17 +53,7 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.apache.sshd</groupId>
-            <artifactId>sshd-core</artifactId>
-            <version>${sshd.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.sshd</groupId>
-            <artifactId>sshd-sftp</artifactId>
-            <version>${sshd.version}</version>
-        </dependency>
-        <!-- Test Deps -->
+        <!-- Test Dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -102,7 +84,6 @@
                     <environmentVariables>
                         <AWS_ACCOUNT_NAME>test</AWS_ACCOUNT_NAME>
                         <AWS_REGION>eu-west-1</AWS_REGION>
-                        <WORLDPAY_FILE_VERSION>V03</WORLDPAY_FILE_VERSION>
                         <LOG_LEVEL>DEBUG</LOG_LEVEL>
                     </environmentVariables>
                 </configuration>
