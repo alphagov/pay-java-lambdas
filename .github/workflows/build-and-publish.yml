@@ -20,8 +20,9 @@ jobs:
         run: |
           git fetch origin main:main
           git diff --name-only --diff-filter=d main~ main | xargs dirname | grep '^bin-ranges-' | cut -f 1 -d "/" |  uniq > submodules.txt
-      - name: Show files
+      - name: Show submodules
         run: |
+          echo "Submodules to build:"
           cat submodules.txt
       - name: Install Java and Maven
         uses: actions/setup-java@5ffc13f4174014e2d4d4572b3d74c3fa61aeb2c2
@@ -34,3 +35,8 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+      - name: Build submodules
+        run: |
+          while read line; do
+            mvn clean compile --projects $line --also-make
+          done < submodules.txt
