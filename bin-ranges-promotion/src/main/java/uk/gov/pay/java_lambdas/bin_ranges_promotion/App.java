@@ -15,9 +15,7 @@ import static uk.gov.pay.java_lambdas.bin_ranges_promotion.util.RequestBuilder.c
 import static uk.gov.pay.java_lambdas.bin_ranges_promotion.util.RequestBuilder.overwritePromotedRange;
 
 public class App implements RequestHandler<Candidate, Boolean> {
-
     private static final Logger logger = LoggerFactory.getLogger(App.class);
-
     private final S3Client s3Client;
 
     public App() {

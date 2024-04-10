@@ -11,12 +11,8 @@ import static uk.gov.pay.java_lambdas.bin_ranges_promotion.config.Constants.AWS_
  * The module containing all dependencies required by the {@link App}.
  */
 public class DependencyFactory {
-
     private DependencyFactory() {}
-
-    /**
-     * @return an instance of S3AsyncClient
-     */
+    
     public static S3Client s3Client() {
         return S3Client.builder()
                        .credentialsProvider(EnvironmentVariableCredentialsProvider.create())

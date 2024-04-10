@@ -5,9 +5,7 @@ import software.amazon.awssdk.regions.Region;
 import static java.lang.String.format;
 
 public class Constants {
-
     private Constants() {
-
     }
 
     public static final Region AWS_REGION = Region.of(System.getenv("AWS_REGION"));

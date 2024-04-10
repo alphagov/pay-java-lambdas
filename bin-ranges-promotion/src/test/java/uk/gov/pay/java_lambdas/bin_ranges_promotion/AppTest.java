@@ -2,13 +2,13 @@ package uk.gov.pay.java_lambdas.bin_ranges_promotion;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +30,6 @@ import java.util.Base64;
 
 @ExtendWith(MockitoExtension.class)
 class AppTest {
-
     @Mock
     private Context mockContext;
     @Mock
@@ -44,29 +43,26 @@ class AppTest {
     public void setUp() {
         dependencyFactoryMockedStatic = mockStatic(DependencyFactory.class);
         dependencyFactoryMockedStatic.when(DependencyFactory::s3Client).thenReturn(mockS3Client);
-
         when(mockContext.getFunctionName()).thenReturn(this.getClass().getName());
         when(mockContext.getFunctionVersion()).thenReturn("TEST");
     }
-
+    
+    @AfterEach
+    public void tearDown() {
+        dependencyFactoryMockedStatic.close();
+    }
+    
     @Test
     void handleRequest_shouldReturnConstantValue() throws NoSuchAlgorithmException {
-
         var copyObjectResponse = copyObjectResponseBuilder();
-        
         when(mockS3Client.copyObject(any(CopyObjectRequest.class)))
             .thenReturn(copyObjectResponse)
             .thenReturn(copyObjectResponse);
-        
-        
         App function = new App();
         var c = new Candidate("an/s3/key.csv", true);
         var result = function.handleRequest(c, mockContext);
         assertTrue(result);
         verify(mockS3Client, times(2)).copyObject(argumentCaptor.capture());
-        
-        
-
     }
 
     private CopyObjectResponse copyObjectResponseBuilder() throws NoSuchAlgorithmException {
