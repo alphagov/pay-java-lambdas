@@ -16,12 +16,10 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
-      - name: Modified files
+      - name: Show submodules
         run: |
           git fetch origin main:main
           git diff --name-only --diff-filter=d main~ main | xargs dirname | grep '^bin-ranges-' | cut -f 1 -d "/" |  uniq > submodules.txt
-      - name: Show submodules
-        run: |
           echo "Submodules to build:"
           cat submodules.txt
       - name: Install Java and Maven

@@ -1,4 +1,2 @@
 bin-ranges-diff
 bin-ranges-integrity
-bin-ranges-promotion
-bin-ranges-transfer
