@@ -7,7 +7,7 @@ import static uk.gov.pay.java_lambdas.bin_ranges_promotion.config.Constants.S3_P
 import static uk.gov.pay.java_lambdas.bin_ranges_promotion.config.Constants.S3_STAGED_BUCKET_NAME;
 
 public class RequestBuilder {
-    private RequestBuilder () {//hello my old friend
+    private RequestBuilder () {
     }
     
     public static CopyObjectRequest copyCandidateToPromotedBucket(String candidateKey) {

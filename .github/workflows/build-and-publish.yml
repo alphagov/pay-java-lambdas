@@ -19,7 +19,10 @@ jobs:
       - name: Modified files
         run: |
           git fetch origin main:main
-          git diff --name-only --diff-filter=d main~ main
+          git diff --name-only --diff-filter=d main~ main | xargs dirname | grep '^bin-ranges-' | cut -f 1 -d "/" |  uniq > submodules.txt
+      - name: Show files
+        run: |
+          cat submodules.txt
       - name: Install Java and Maven
         uses: actions/setup-java@5ffc13f4174014e2d4d4572b3d74c3fa61aeb2c2
         with:
