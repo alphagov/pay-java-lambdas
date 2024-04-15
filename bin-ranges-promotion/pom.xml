@@ -97,7 +97,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <configuration>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
-                    <finalName>${project.artifactId}</finalName>
+                    <finalName>${project.artifactId}-${project.version}</finalName>
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>
