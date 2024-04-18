@@ -5,6 +5,8 @@
         </encoder>
     </appender>
     <logger name="software.amazon.awssdk" level="INFO" />
+    <logger name="org.hibernate" level="INFO" />
+    <logger name="org.jboss" level="INFO" />
     <root level="debug">
         <appender-ref ref="STDOUT" />
     </root>
