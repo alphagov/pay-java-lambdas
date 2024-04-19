@@ -20,7 +20,6 @@ import uk.gov.pay.java_lambdas.bin_ranges_integrity.exception.BinRangeValidation
 import uk.gov.pay.java_lambdas.bin_ranges_integrity.exception.UnexpectedFilesizeException;
 import uk.gov.pay.java_lambdas.bin_ranges_integrity.util.PercentageChange;
 import uk.gov.pay.java_lambdas.bin_ranges_integrity.util.RequestBuilder;
-
 import uk.gov.pay.java_lambdas.common.bin_ranges.dto.Candidate;
 import uk.gov.pay.java_lambdas.common.bin_ranges.model.issuer_bin_detail_record.IssuerBINDetailRecord;
 
@@ -37,7 +36,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
 
 import static java.lang.String.format;
 import static uk.gov.pay.java_lambdas.bin_ranges_integrity.config.Constants.ACCEPTABLE_FILESIZE_DIFFERENCE_PERCENTAGE;
