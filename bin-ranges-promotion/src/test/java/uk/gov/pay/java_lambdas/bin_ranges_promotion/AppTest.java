@@ -54,10 +54,9 @@ class AppTest {
     
     @Test
     void handleRequest_shouldReturnConstantValue() throws NoSuchAlgorithmException {
-        var copyObjectResponse = copyObjectResponseBuilder();
         when(mockS3Client.copyObject(any(CopyObjectRequest.class)))
-            .thenReturn(copyObjectResponse)
-            .thenReturn(copyObjectResponse);
+            .thenReturn(copyObjectResponseBuilder("promoted"))
+            .thenReturn(copyObjectResponseBuilder("candidate"));
         App function = new App();
         var c = new Candidate("an/s3/key.csv", true);
         var result = function.handleRequest(c, mockContext);
@@ -65,9 +64,9 @@ class AppTest {
         verify(mockS3Client, times(2)).copyObject(argumentCaptor.capture());
     }
 
-    private CopyObjectResponse copyObjectResponseBuilder() throws NoSuchAlgorithmException {
+    private CopyObjectResponse copyObjectResponseBuilder(String value) throws NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        messageDigest.update("promoted".getBytes(StandardCharsets.UTF_8));
+        messageDigest.update(value.getBytes(StandardCharsets.UTF_8));
         String base64Sha = BASE_64_ENCODER.encodeToString(messageDigest.digest());
         return CopyObjectResponse.builder()
             .copyObjectResult(CopyObjectResult.builder()

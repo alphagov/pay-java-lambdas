@@ -25,5 +25,4 @@ class PercentageChangeTest {
             Arguments.of(2000L, 1000L, 100.00)
         );
     }
-
 }

@@ -119,7 +119,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.12.1</version>
+                    <version>3.13.0</version>
                     <configuration>
                         <compilerArgument>-proc:none</compilerArgument>
                         <release>21</release>
@@ -129,17 +129,31 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.2.5</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>me.fabriciorby</groupId>
+                            <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
+                            <version>1.2.1</version>
+                        </dependency>
+                    </dependencies>
                     <configuration>
+                        <reportFormat>plain</reportFormat>
+                        <consoleOutputReporter>
+                            <disable>true</disable>
+                        </consoleOutputReporter>
                         <argLine>
                             -XX:+EnableDynamicAgentLoading
                             -Xshare:off
                         </argLine>
+                        <statelessTestsetInfoReporter
+                                implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporter">
+                        </statelessTestsetInfoReporter>
                     </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>3.2.1</version>
+                    <version>3.5.2</version>
                     <configuration>
                         <createDependencyReducedPom>false</createDependencyReducedPom>
                         <finalName>${project.artifactId}-${project.version}-uber</finalName>
@@ -148,11 +162,25 @@
                             <filter>
                                 <artifact>*:*</artifact>
                                 <excludes>
-                                    <!-- Suppress module-info.class warning-->
                                     <exclude>module-info.class</exclude>
+                                    <exclude>META-INF/*-NOTICE</exclude>
+                                    <exclude>META-INF/*-LICENSE</exclude>
+                                    <exclude>META-INF/*.MF</exclude>
+                                    <exclude>META-INF/versions/*/module-info.class</exclude>
                                 </excludes>
                             </filter>
                         </filters>
+                        <transformers>
+                            <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer">
+                            </transformer>
+                            <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer">
+                            </transformer>
+                            <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                            </transformer>
+                        </transformers>
                     </configuration>
                     <executions>
                         <execution>

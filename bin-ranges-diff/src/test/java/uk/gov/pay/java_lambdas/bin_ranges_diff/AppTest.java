@@ -58,8 +58,8 @@ class AppTest {
     @ParameterizedTest
     @CsvSource({"same,false", "diff,true"})
     void handleRequest_shouldDetermineWhenSHAsAreDifferent(String input, boolean expected) throws IOException {
-        String candidateDataPath = Paths.get("src/test/resources/testData", format("candidate_%s.csv", input)).toString();
-        String promotedDataPath = Paths.get("src/test/resources/testData", format("promoted_%s.csv", input)).toString();
+        String candidateDataPath = Paths.get("src/test/resources/test-data", format("candidate_%s.csv", input)).toString();
+        String promotedDataPath = Paths.get("src/test/resources/test-data", format("promoted_%s.csv", input)).toString();
         
         try (FileInputStream candidateFIS = new FileInputStream(candidateDataPath);
              FileInputStream promotedFIS = new FileInputStream(promotedDataPath)) {

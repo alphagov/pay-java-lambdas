@@ -55,7 +55,7 @@ class IssuerBINDetailRecordTest {
 
         List<IssuerBINDetailRecord> records = Collections.synchronizedList(new ArrayList<>());
         
-        try (InputStream inputStream = new FileInputStream(Paths.get("src/test/resources/testData", filename).toString());
+        try (InputStream inputStream = new FileInputStream(Paths.get("src/test/resources/test-data", filename).toString());
              ZipInputStream zipInputStream = new ZipInputStream(inputStream);
              BufferedReader reader = new BufferedReader(new InputStreamReader(zipInputStream))) {
 
@@ -83,9 +83,12 @@ class IssuerBINDetailRecordTest {
     @CsvFileSource(resources = "/bad_ranges.csv", numLinesToSkip = 1)
     void issuerBINDetailRecord_shouldFailValidation_ifRequiredField_isMissing(String expected, String input) throws IOException {
 
-        Exception exception = assertThrows(ConstraintViolationException.class, () -> mapper.readerFor(IssuerBINDetailRecord.class)
+        Exception exception = assertThrows(ConstraintViolationException.class, () -> {
+            var record = mapper.readerFor(IssuerBINDetailRecord.class)
                 .with(schema)
-                .readValue(input));
+                .readValue(input);
+            System.out.println(record);
+        });
 
         String actualMessage = exception.getMessage();
 
