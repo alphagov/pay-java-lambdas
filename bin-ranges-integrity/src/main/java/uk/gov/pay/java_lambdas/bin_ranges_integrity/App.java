@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
@@ -76,11 +77,10 @@ public class App implements RequestHandler<Candidate, Candidate> {
     }
 
     private void checkFileSizes(Candidate candidate) {
-        var headObjectCandidateBinRangesRequest = RequestBuilder.headObjectRequest(S3_STAGED_BUCKET_NAME, candidate.s3Key());
-        var headObjectPromotedBinRangesRequest = RequestBuilder.headObjectRequest(S3_PROMOTED_BUCKET_NAME, PROMOTED_BIN_RANGES_S3_KEY);
+        HeadObjectRequest headObjectCandidateBinRangesRequest = RequestBuilder.headObjectRequest(S3_STAGED_BUCKET_NAME, candidate.s3Key());
+        HeadObjectRequest headObjectPromotedBinRangesRequest = RequestBuilder.headObjectRequest(S3_PROMOTED_BUCKET_NAME, PROMOTED_BIN_RANGES_S3_KEY);
 
-        Map<String, Long> fileSizes = getFileSizes(headObjectCandidateBinRangesRequest, headObjectPromotedBinRangesRequest);
-        double change = PercentageChange.get(fileSizes.get(candidate.s3Key()), fileSizes.get(PROMOTED_BIN_RANGES_S3_KEY));
+        double change = PercentageChange.get(getFileSize(headObjectPromotedBinRangesRequest), getFileSize(headObjectCandidateBinRangesRequest));
         logger.debug("Change percentage [actual: {}] [acceptable: {}}]", change, ACCEPTABLE_FILESIZE_DIFFERENCE_PERCENTAGE);
         if (change > ACCEPTABLE_FILESIZE_DIFFERENCE_PERCENTAGE) {
             throw new UnexpectedFilesizeException(
@@ -89,37 +89,31 @@ public class App implements RequestHandler<Candidate, Candidate> {
         }
     }
 
-    private Map<String, Long> getFileSizes(HeadObjectRequest headObjectCandidateBinRangesRequest, HeadObjectRequest headObjectPromotedBinRangesRequest) {
-        List<HeadObjectRequest> requests = Arrays.asList(headObjectCandidateBinRangesRequest, headObjectPromotedBinRangesRequest);
-        Map<String, Long> fileSizes = new HashMap<>();
-        
-        requests.forEach(headObjectRequest -> {
-            logger.debug("Retrieving HEAD for {} from {}", headObjectRequest.key(), headObjectRequest.bucket());
-            HeadObjectResponse s3HeadObjectResponse = s3Client.headObject(headObjectRequest);
-            logger.debug("[key: {}] [size: {}]", headObjectRequest.key(), s3HeadObjectResponse.contentLength());
-            fileSizes.put(headObjectRequest.key(), s3HeadObjectResponse.contentLength());
-        });
-        return fileSizes;
+    private Long getFileSize(HeadObjectRequest headObjectRequest) {
+        logger.debug("Retrieving HEAD for {} from {}", headObjectRequest.key(), headObjectRequest.bucket());
+        HeadObjectResponse s3HeadObjectResponse = s3Client.headObject(headObjectRequest);
+        logger.debug("[key: {}] [size: {}]", headObjectRequest.key(), s3HeadObjectResponse.contentLength());
+        return s3HeadObjectResponse.contentLength();
     }
 
     public void parseAndValidate(Candidate candidate) {
-        var getObjectCandidateBinRangesRequest = RequestBuilder.getObjectRequest(S3_STAGED_BUCKET_NAME, candidate.s3Key());
+        GetObjectRequest getObjectCandidateBinRangesRequest = RequestBuilder.getObjectRequest(S3_STAGED_BUCKET_NAME, candidate.s3Key());
         logger.debug("Downloading {}", getObjectCandidateBinRangesRequest.key());
         try (ResponseInputStream<GetObjectResponse> s3ObjectInputStream = s3Client.getObject(getObjectCandidateBinRangesRequest);
              BufferedReader reader = new BufferedReader(new InputStreamReader(s3ObjectInputStream, StandardCharsets.UTF_8))) {
-            
+
             AtomicInteger index = new AtomicInteger(0);
             Map<Integer, String> candidateRows = reader.lines()
                 .collect(Collectors.toMap(line -> index.getAndIncrement(), line -> line));
-            
+
             candidateRows.remove(candidateRows.size() - 1); // remove trailer record
             candidateRows.remove(0); // remove header record
             logger.debug("Candidate record total: {}", candidateRows.size());
-            
-            List<IssuerBINDetailRecord> records = Collections.synchronizedList(new ArrayList<>());
+
+            List<IssuerBINDetailRecord> validatedRecords = Collections.synchronizedList(new ArrayList<>());
             candidateRows.entrySet().parallelStream().forEach(line -> {
                 try {
-                    records.add(mapper.readerFor(IssuerBINDetailRecord.class)
+                    validatedRecords.add(mapper.readerFor(IssuerBINDetailRecord.class)
                         .with(schema)
                         .readValue(line.getValue()));
                 } catch (JsonProcessingException e) {
@@ -134,11 +128,11 @@ public class App implements RequestHandler<Candidate, Candidate> {
                     logger.error("Violation on line {} {}", line.getKey(), violationMessages);
                 }
             });
-            
-            logger.debug("Validated record total: {}", records.size());
-            if (records.size() != candidateRows.size()) {
+
+            logger.debug("Validated record total: {}", validatedRecords.size());
+            if (validatedRecords.size() != candidateRows.size()) {
                 throw new BinRangeValidationException("Error validating candidate BIN range, see logs for more detail");
-            } 
+            }
         } catch (IOException e) {
             throw new BinRangeValidationException(format("Error validating candidate BIN range: %s", e.getMessage()));
         }

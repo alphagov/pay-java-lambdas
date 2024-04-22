@@ -122,8 +122,8 @@ class AppTest {
              FileInputStream promotedFIS = new FileInputStream(promotedPath)) {
 
             when(mockS3Client.headObject(any(HeadObjectRequest.class)))
-                .thenReturn(headObjRes(candidateFIS.available()))
-                .thenReturn(headObjRes(promotedFIS.available()));
+                .thenReturn(headObjRes(promotedFIS.available()))
+                .thenReturn(headObjRes(candidateFIS.available()));
 
             App function = new App();
             Candidate candidate = new Candidate("/an/s3/key.csv", true);
@@ -138,7 +138,7 @@ class AppTest {
     }
 
     @Test
-    void handleRequest_processesRealisticRangeSizes() throws IOException {
+    void handleRequest_shouldProcessRealisticFileSizes() throws IOException {
         var candidatePath = Paths.get("src/test/resources/test-data/realistic-ranges/BIN_V03_REDACTED_2.zip").toString();
         var promotedPath = Paths.get("src/test/resources/test-data/realistic-ranges/BIN_V03_REDACTED_1.zip").toString();
         

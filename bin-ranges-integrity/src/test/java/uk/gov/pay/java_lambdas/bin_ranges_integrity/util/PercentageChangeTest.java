@@ -19,10 +19,10 @@ class PercentageChangeTest {
 
     private static Stream<Arguments> percentageChange_shouldGetChangePercentageAbsoluteRounded() {
         return Stream.of(
-            Arguments.of(1060L, 1000L, 6.00),
-            Arguments.of(1000L, 1060L, 5.660377358490567),
-            Arguments.of(500L, 1000L, 50.00),
-            Arguments.of(2000L, 1000L, 100.00)
+            Arguments.of(1000L, 1060L, 6.00),
+            Arguments.of(1060L, 1000L, 5.660377358490567),
+            Arguments.of(1000L, 500L, 50.00),
+            Arguments.of(1000L, 2000L, 100.00)
         );
     }
 }
