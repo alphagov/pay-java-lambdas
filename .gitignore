@@ -16,6 +16,7 @@
 *.nar
 *.ear
 *.zip
+!**/test-data/**/*.zip
 *.tar.gz
 *.rar
 

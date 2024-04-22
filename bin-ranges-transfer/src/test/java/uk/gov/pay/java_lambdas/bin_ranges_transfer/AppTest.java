@@ -1,22 +1,5 @@
 package uk.gov.pay.java_lambdas.bin_ranges_transfer;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.atMost;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static uk.gov.pay.java_lambdas.bin_ranges_transfer.DependencyFactory.SFTP_VERSION;
-import static uk.gov.pay.java_lambdas.bin_ranges_transfer.helper.TestSftpServer.TEST_SERVER_USERNAME;
-import static uk.gov.pay.java_lambdas.bin_ranges_transfer.helper.TestSftpServer.V03_FILENAME;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.sftp.client.SftpClient;
@@ -46,6 +29,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.atMost;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static uk.gov.pay.java_lambdas.bin_ranges_transfer.DependencyFactory.SFTP_VERSION;
+import static uk.gov.pay.java_lambdas.bin_ranges_transfer.helper.TestSftpServer.TEST_SERVER_USERNAME;
+import static uk.gov.pay.java_lambdas.bin_ranges_transfer.helper.TestSftpServer.V03_FILENAME;
 
 @ExtendWith(MockitoExtension.class)
 class AppTest {

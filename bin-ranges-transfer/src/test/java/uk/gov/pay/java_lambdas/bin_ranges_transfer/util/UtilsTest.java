@@ -13,7 +13,9 @@ import java.nio.file.Path;
 import java.time.format.DateTimeParseException;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.util.Utils.createTempPrivateKeyFile;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.util.Utils.extractDateString;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.util.Utils.extractVersion;

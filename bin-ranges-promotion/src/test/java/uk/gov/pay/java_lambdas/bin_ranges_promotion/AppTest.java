@@ -1,12 +1,5 @@
 package uk.gov.pay.java_lambdas.bin_ranges_promotion;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +20,13 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AppTest {
@@ -54,10 +54,9 @@ class AppTest {
     
     @Test
     void handleRequest_shouldReturnConstantValue() throws NoSuchAlgorithmException {
-        var copyObjectResponse = copyObjectResponseBuilder();
         when(mockS3Client.copyObject(any(CopyObjectRequest.class)))
-            .thenReturn(copyObjectResponse)
-            .thenReturn(copyObjectResponse);
+            .thenReturn(copyObjectResponseBuilder("promoted"))
+            .thenReturn(copyObjectResponseBuilder("candidate"));
         App function = new App();
         var c = new Candidate("an/s3/key.csv", true);
         var result = function.handleRequest(c, mockContext);
@@ -65,9 +64,9 @@ class AppTest {
         verify(mockS3Client, times(2)).copyObject(argumentCaptor.capture());
     }
 
-    private CopyObjectResponse copyObjectResponseBuilder() throws NoSuchAlgorithmException {
+    private CopyObjectResponse copyObjectResponseBuilder(String value) throws NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        messageDigest.update("promoted".getBytes(StandardCharsets.UTF_8));
+        messageDigest.update(value.getBytes(StandardCharsets.UTF_8));
         String base64Sha = BASE_64_ENCODER.encodeToString(messageDigest.digest());
         return CopyObjectResponse.builder()
             .copyObjectResult(CopyObjectResult.builder()
