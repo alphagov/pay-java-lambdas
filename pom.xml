@@ -11,11 +11,12 @@
     <url>https://payments.service.gov.uk/</url>
 
     <modules>
+        <module>common</module>
         <module>bin-ranges-diff</module>
         <module>bin-ranges-integrity</module>
         <module>bin-ranges-transfer</module>
-        <module>common</module>
         <module>bin-ranges-promotion</module>
+        <module>e2e</module>
     </modules>
 
     <properties>
@@ -28,6 +29,9 @@
         <mockito.version>5.10.0</mockito.version>
         <jackson.version>2.16.1</jackson.version>
         <hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
+        <testcontainers.version>1.19.7</testcontainers.version>
+        <sshd.version>2.12.0</sshd.version>
+        <skip.surefire>false</skip.surefire>
     </properties>
 
     <dependencyManagement>
@@ -76,6 +80,23 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.sshd</groupId>
+                <artifactId>sshd-core</artifactId>
+                <version>${sshd.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.sshd</groupId>
+                <artifactId>sshd-sftp</artifactId>
+                <version>${sshd.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
                 <version>${logback.version}</version>
@@ -118,6 +139,11 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.4.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.13.0</version>
                     <configuration>
@@ -137,6 +163,7 @@
                         </dependency>
                     </dependencies>
                     <configuration>
+                        <skip>${skip.surefire}</skip>
                         <reportFormat>plain</reportFormat>
                         <consoleOutputReporter>
                             <disable>true</disable>
@@ -156,8 +183,9 @@
                     <version>3.5.2</version>
                     <configuration>
                         <createDependencyReducedPom>false</createDependencyReducedPom>
-                        <finalName>${project.artifactId}-${project.version}-uber</finalName>
                         <outputDirectory>./target</outputDirectory>
+                        <shadedArtifactAttached>true</shadedArtifactAttached>
+                        <shadedClassifierName>uber</shadedClassifierName>
                         <filters>
                             <filter>
                                 <artifact>*:*</artifact>
@@ -166,7 +194,6 @@
                                     <exclude>META-INF/*-NOTICE</exclude>
                                     <exclude>META-INF/*-LICENSE</exclude>
                                     <exclude>META-INF/*.MF</exclude>
-                                    <exclude>META-INF/versions/*/module-info.class</exclude>
                                 </excludes>
                             </filter>
                         </filters>
@@ -190,6 +217,11 @@
                             </goals>
                         </execution>
                     </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>3.2.5</version>
                 </plugin>
             </plugins>
         </pluginManagement>

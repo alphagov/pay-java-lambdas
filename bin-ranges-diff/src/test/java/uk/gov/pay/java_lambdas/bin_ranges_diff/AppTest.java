@@ -21,6 +21,7 @@ import uk.gov.pay.java_lambdas.common.bin_ranges.dto.Candidate;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 
 import static java.lang.String.format;
@@ -58,14 +59,11 @@ class AppTest {
     @ParameterizedTest
     @CsvSource({"same,false", "diff,true"})
     void handleRequest_shouldDetermineWhenSHAsAreDifferent(String input, boolean expected) throws IOException {
-        String candidateDataPath = Paths.get("src/test/resources/test-data", format("candidate_%s.csv", input)).toString();
-        String promotedDataPath = Paths.get("src/test/resources/test-data", format("promoted_%s.csv", input)).toString();
-        
-        try (FileInputStream candidateFIS = new FileInputStream(candidateDataPath);
-             FileInputStream promotedFIS = new FileInputStream(promotedDataPath)) {
+        try (InputStream candidateIS = getClass().getResourceAsStream(format("/test-data/candidate_%s.csv", input));
+             InputStream promotedIS = getClass().getResourceAsStream(format("/test-data/promoted_%s.csv", input))) {
 
-            ResponseInputStream<GetObjectResponse> candidateResponseInputStream = new ResponseInputStream<>(GetObjectResponse.builder().build(), candidateFIS);
-            ResponseInputStream<GetObjectResponse> promotedResponseInputStream = new ResponseInputStream<>(GetObjectResponse.builder().build(), promotedFIS);
+            ResponseInputStream<GetObjectResponse> candidateResponseInputStream = new ResponseInputStream<>(GetObjectResponse.builder().build(), candidateIS);
+            ResponseInputStream<GetObjectResponse> promotedResponseInputStream = new ResponseInputStream<>(GetObjectResponse.builder().build(), promotedIS);
 
             when(mockS3Client.getObject(any(GetObjectRequest.class)))
                 .thenReturn(candidateResponseInputStream)

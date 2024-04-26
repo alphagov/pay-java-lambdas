@@ -45,13 +45,11 @@ public class App implements RequestHandler<Candidate, Candidate> {
         var promotedSha = digests.right();
         logger.info("Object SHAs [candidate: {}] [promoted: {}]", candidateSha, promotedSha);
         return candidateSha.equals(promotedSha)
-            ? Candidate.from(candidate, false)
-            : Candidate.from(candidate, true);
+            ? Candidate.halt(candidate, "Object SHAs are identical")
+            : Candidate.proceed(candidate);
     }
 
     private Pair<String, String> getShaDigestsFromS3(String candidateKey) {
-        // todo: check for pre-existing sha digests on the promoted head object
-
         var getCandidateBinRangesRequest = RequestBuilder.getObjectRequest(S3_STAGED_BUCKET_NAME, candidateKey);
         var getPromotedBinRangesRequest = RequestBuilder.getObjectRequest(S3_PROMOTED_BUCKET_NAME, PROMOTED_BIN_RANGES_S3_KEY);
 
