@@ -1,16 +1,13 @@
 package uk.gov.pay.java_lambdas.integration.bin_ranges;
 
-import org.apache.commons.logging.impl.SLF4JLog;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.DockerClientFactory;
+import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.ResourceReaper;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -63,16 +60,13 @@ import static uk.gov.pay.java_lambdas.common.bin_ranges.helper.LocalSftpServer.T
 import static uk.gov.pay.java_lambdas.common.bin_ranges.helper.LocalSftpServer.V03_FILENAME;
 import static uk.gov.pay.java_lambdas.common.bin_ranges.helper.LocalSftpServer.loadData;
 
-@Testcontainers
 class BinRangesIngestIT {
 
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private static final Logger logger = LoggerFactory.getLogger(BinRangesIngestIT.class);
     // don't forget to change the tag in GHA workflow if you update this 
-    DockerImageName localstackImage = DockerImageName.parse("localstack/localstack:3.3");
-
-    @Container
-    public LocalStackContainer localstack = new LocalStackContainer(localstackImage)
+    private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:3.3");
+    private static final LocalStackContainer LOCALSTACK = new LocalStackContainer(LOCALSTACK_IMAGE)
         .withServices(S3, SSM, LAMBDA, CLOUDWATCHLOGS)
         .withEnv("DEFAULT_REGION", Region.EU_WEST_1.toString())
 //        .withEnv("DEBUG", "1")
@@ -81,67 +75,63 @@ class BinRangesIngestIT {
         .withEnv("LAMBDA_IGNORE_ARCHITECTURE", "1")
         .withEnv("LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT", "60");
 
+    private S3Client s3Client;
+    private SsmClient ssmClient;
+    private LambdaClient lambdaClient;
+    private LambdaWaiter lambdaWaiter;
+    private static final LocalSftpServer LOCAL_SFTP_SERVER;
+    private static final String AWS_ACCOUNT_NAME = "test";
+    private static final String PASSPHRASE_PARAMETER_NAME = "passphrase";
+    private static final String PRIVATE_KEY_PARAMETER_NAME = "privateKey";
+    private static final String STAGED_BUCKET_NAME = format("bin-ranges-staged-%s", AWS_ACCOUNT_NAME);
+    private static final String PROMOTED_BUCKET_NAME = format("bin-ranges-promoted-%s", AWS_ACCOUNT_NAME);
+    private static final Path PROMOTED_CSV_PATH = Paths.get("src/test/resources/promoted-ranges.csv");
 
-    //todo: remove this helper method that ensures all localstack containers are cleaned up by testcontainers, see this GitHub issue: https://github.com/localstack/localstack/issues/8616
-    static String testcontainersLabels() {
-        return Stream
-            .of(DockerClientFactory.DEFAULT_LABELS.entrySet().stream(),
-                ResourceReaper.instance().getLabels().entrySet().stream())
-            .flatMap(Function.identity())
-            .map(entry -> String.format("-l %s=%s", entry.getKey(), entry.getValue()))
-            .collect(Collectors.joining(" "));
+    static {
+        LOCAL_SFTP_SERVER = new LocalSftpServer();
+        try {
+            LOCAL_SFTP_SERVER.startServer();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Testcontainers.exposeHostPorts(LOCAL_SFTP_SERVER.getPort());
+        LOCALSTACK.start();
     }
-
-    private LocalSftpServer localSftpServer;
-    S3Client s3Client;
-    SsmClient ssmClient;
-    LambdaClient lambdaClient;
-    LambdaWaiter lambdaWaiter;
-    private final static String AWS_ACCOUNT_NAME = "test";
-    private final static String PASSPHRASE_PARAMETER_NAME = "passphrase";
-    private final static String PRIVATE_KEY_PARAMETER_NAME = "privateKey";
-    private final static String STAGED_BUCKET_NAME = format("bin-ranges-staged-%s", AWS_ACCOUNT_NAME);
-    private final static String PROMOTED_BUCKET_NAME = format("bin-ranges-promoted-%s", AWS_ACCOUNT_NAME);
-    private final static Path PROMOTED_CSV_PATH = Paths.get("src/test/resources/promoted-ranges.csv");
 
     @BeforeEach
     public void setup() throws IOException {
-        localSftpServer = new LocalSftpServer();
-        localSftpServer.startServer();
-        localstack.addExposedPort(localSftpServer.getPort());
-
         lambdaClient = LambdaClient.builder()
-            .endpointOverride(localstack.getEndpoint())
+            .endpointOverride(LOCALSTACK.getEndpoint())
             .credentialsProvider(
                 StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())
+                    AwsBasicCredentials.create(LOCALSTACK.getAccessKey(), LOCALSTACK.getSecretKey())
                 )
             )
-            .region(Region.of(localstack.getRegion()))
+            .region(Region.of(LOCALSTACK.getRegion()))
             .build();
 
         lambdaWaiter = lambdaClient.waiter();
 
         s3Client = S3Client
             .builder()
-            .endpointOverride(localstack.getEndpoint())
+            .endpointOverride(LOCALSTACK.getEndpoint())
             .credentialsProvider(
                 StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())
+                    AwsBasicCredentials.create(LOCALSTACK.getAccessKey(), LOCALSTACK.getSecretKey())
                 )
             )
-            .region(Region.of(localstack.getRegion()))
+            .region(Region.of(LOCALSTACK.getRegion()))
             .build();
 
         ssmClient = SsmClient
             .builder()
-            .endpointOverride(localstack.getEndpoint())
+            .endpointOverride(LOCALSTACK.getEndpoint())
             .credentialsProvider(
                 StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())
+                    AwsBasicCredentials.create(LOCALSTACK.getAccessKey(), LOCALSTACK.getSecretKey())
                 )
             )
-            .region(Region.of(localstack.getRegion()))
+            .region(Region.of(LOCALSTACK.getRegion()))
             .build();
 
         ssmClient.putParameter(PutParameterRequest.builder()
@@ -175,7 +165,7 @@ class BinRangesIngestIT {
             )
             .map(l -> {
                 try {
-                    return createAndActivateLambdas(l);
+                    return createAndActivateLambda(l);
                 } catch (FileNotFoundException e) {
                     throw new RuntimeException(e);
                 }
@@ -233,15 +223,27 @@ class BinRangesIngestIT {
             .bucket(PROMOTED_BUCKET_NAME).build()).contents().size());
     }
     
-    private JSONObject commonAssertions(SdkBytes responsePayload){
+    // --- PRIVATE ---
+
+    private JSONObject commonAssertions(SdkBytes responsePayload) {
         JSONObject underTest = new JSONObject(new String(responsePayload.asByteArray()));
         assertTrue((Boolean) underTest.get("proceed"));
         assertTrue(((String) underTest.get("s3Key")).contains(V03_FILENAME));
         return underTest;
     }
 
+    private static String testcontainersLabels() {
+        return Stream.concat(
+                Stream
+                    .of(DockerClientFactory.DEFAULT_LABELS.entrySet().stream(),
+                        ResourceReaper.instance().getLabels().entrySet().stream())
+                    .flatMap(Function.identity())
+                    .map(entry -> String.format("-l %s=%s", entry.getKey(), entry.getValue())),
+                Stream.of("--add-host host.testcontainers.internal:host-gateway")) // important to allow lambdas to connect out to local sftp
+            .collect(Collectors.joining(" "));
+    }
 
-    private CompletableFuture<Void> createAndActivateLambdas(String function) throws FileNotFoundException {
+    private CompletableFuture<Void> createAndActivateLambda(String function) throws FileNotFoundException {
         String functionName = format("bin-ranges-%s", function);
 
         GetFunctionRequest getFunctionRequest = GetFunctionRequest.builder()
@@ -258,15 +260,15 @@ class BinRangesIngestIT {
         // env vars for all functions
         Environment functionEnv = Environment.builder()
             .variables(Map.ofEntries(
-                Map.entry("AWS_ACCESS_KEY_ID", localstack.getAccessKey()),
-                Map.entry("AWS_SECRET_ACCESS_KEY", localstack.getSecretKey()),
+                Map.entry("AWS_ACCESS_KEY_ID", LOCALSTACK.getAccessKey()),
+                Map.entry("AWS_SECRET_ACCESS_KEY", LOCALSTACK.getSecretKey()),
                 Map.entry("AWS_ACCOUNT_NAME", AWS_ACCOUNT_NAME),
                 Map.entry("AWS_REGION", "eu-west-1"),
                 Map.entry("LOG_LEVEL", "DEBUG"),
                 Map.entry("PASSPHRASE_PARAMETER_NAME", PASSPHRASE_PARAMETER_NAME),
                 Map.entry("PRIVATE_KEY_PARAMETER_NAME", PRIVATE_KEY_PARAMETER_NAME),
-                Map.entry("SFTP_HOST", getDockerHostAddress()),
-                Map.entry("SFTP_PORT", String.valueOf(localSftpServer.getPort())),
+                Map.entry("SFTP_HOST", "host.testcontainers.internal"),
+                Map.entry("SFTP_PORT", String.valueOf(LOCAL_SFTP_SERVER.getPort())),
                 Map.entry("SFTP_USERNAME", TEST_SERVER_USERNAME),
                 Map.entry("LOCALSTACK_ENABLED", "TRUE")
             )).build();
@@ -290,14 +292,5 @@ class BinRangesIngestIT {
             WaiterResponse<GetFunctionResponse> activeResponse = lambdaWaiter.waitUntilFunctionActiveV2(getFunctionRequest);
             activeResponse.matched().response().ifPresent(response -> logger.debug("LAMBDA READY: {}", response.configuration().functionName()));
         }, executor);
-    }
-    
-    private String getDockerHostAddress() {
-        String osName = System.getProperty("os.name").toLowerCase();
-        if (osName.contains("linux")) {
-            return "172.17.0.1";  // Default gateway for Docker on Linux
-        } else {
-            return "host.docker.internal";  // For Mac and Windows
-        }
     }
 }

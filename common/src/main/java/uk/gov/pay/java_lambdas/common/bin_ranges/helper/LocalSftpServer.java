@@ -31,7 +31,7 @@ public class LocalSftpServer {
     public void startServer() throws IOException {
         sshServer = SshServer.setUpDefaultServer();
         sshServer.setPort(0); // automatic port selection
-        sshServer.setHost("localhost");
+        sshServer.setHost("0.0.0.0");
         sshServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
         sshServer.setPublickeyAuthenticator((username, key, session) -> TEST_SERVER_USERNAME.equals(username));
         configureFileSystem(sshServer);
@@ -98,7 +98,7 @@ public class LocalSftpServer {
     public static String loadData(String resource, CharSequence delimiter, Class clazz) throws IOException {
         InputStream inputStream = clazz.getResourceAsStream(resource);
         if (inputStream == null) {
-            throw new FileNotFoundException("resource not found");
+            throw new FileNotFoundException("Classpath resource not found");
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             return reader.lines().collect(Collectors.joining(delimiter));
