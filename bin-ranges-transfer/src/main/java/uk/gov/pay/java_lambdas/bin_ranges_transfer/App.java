@@ -62,7 +62,6 @@ public class App implements RequestHandler<Void, Candidate> {
         if (!sshClient.isStarted()) {
             sshClient.start();
         }
-        logger.debug("username: {}, host: {}, port: {}", getSftpUsername(), getSftpHost(), getSftpPort());
         try (ClientSession session = sshClient.connect(getSftpUsername(), getSftpHost(), getSftpPort())
             .verify()
             .getSession()) {
