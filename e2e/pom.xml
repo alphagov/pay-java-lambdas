@@ -12,10 +12,6 @@
 
     <name>E2E Tests</name>
 
-    <properties>
-        <bin.lambdas.version>1.0-SNAPSHOT</bin.lambdas.version>
-    </properties>
-
     <dependencies>
         <!-- Test Deps -->
         <dependency>

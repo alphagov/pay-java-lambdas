@@ -45,7 +45,7 @@ public class App implements RequestHandler<Candidate, Candidate> {
         var promotedSha = digests.right();
         logger.info("Object SHAs [candidate: {}] [promoted: {}]", candidateSha, promotedSha);
         return candidateSha.equals(promotedSha)
-            ? Candidate.halt(candidate, "Object SHAs are identical")
+            ? Candidate.halt(candidate, "BIN ranges candidate SHA is identical to promoted, halting ingest")
             : Candidate.proceed(candidate);
     }
 

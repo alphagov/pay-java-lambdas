@@ -23,6 +23,7 @@ import software.amazon.awssdk.services.lambda.model.FunctionCode;
 import software.amazon.awssdk.services.lambda.model.GetFunctionRequest;
 import software.amazon.awssdk.services.lambda.model.GetFunctionResponse;
 import software.amazon.awssdk.services.lambda.model.InvokeRequest;
+import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 import software.amazon.awssdk.services.lambda.model.Runtime;
 import software.amazon.awssdk.services.lambda.waiters.LambdaWaiter;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -45,7 +46,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -66,11 +66,19 @@ class BinRangesIngestIT {
     private static final Logger logger = LoggerFactory.getLogger(BinRangesIngestIT.class);
     // don't forget to change the tag in GHA workflow if you update this 
     private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:3.3");
+    
+    /**
+     * debug logging can be enabled with the following env vars:
+     * <pre>
+     * {@code
+     *  .withEnv("DEBUG", "1")
+     *  .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("localstack")));
+     * }
+     * </pre>
+     */
     private static final LocalStackContainer LOCALSTACK = new LocalStackContainer(LOCALSTACK_IMAGE)
         .withServices(S3, SSM, LAMBDA, CLOUDWATCHLOGS)
         .withEnv("DEFAULT_REGION", Region.EU_WEST_1.toString())
-//        .withEnv("DEBUG", "1")
-//        .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("localstack")))
         .withEnv("LAMBDA_DOCKER_FLAGS", testcontainersLabels())
         .withEnv("LAMBDA_IGNORE_ARCHITECTURE", "1")
         .withEnv("LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT", "60");
@@ -182,7 +190,7 @@ class BinRangesIngestIT {
         assertEquals(0, s3Client.listObjects(ListObjectsRequest.builder()
             .bucket(STAGED_BUCKET_NAME).build()).contents().size());
         logger.debug("invoking bin-ranges-transfer");
-        var transferFunctionInvokeRes = lambdaClient.invoke(InvokeRequest.builder()
+        InvokeResponse transferFunctionInvokeRes = lambdaClient.invoke(InvokeRequest.builder()
             .functionName("bin-ranges-transfer")
             .build()
         );
@@ -191,7 +199,7 @@ class BinRangesIngestIT {
         SdkBytes diffFunctionRequestPayload = SdkBytes.fromUtf8String(transferFunctionResponseCandidate.toString());
 
         logger.debug("invoking bin-ranges-diff");
-        var diffFunctionInvokeRes = lambdaClient.invoke(InvokeRequest.builder()
+        InvokeResponse diffFunctionInvokeRes = lambdaClient.invoke(InvokeRequest.builder()
             .functionName("bin-ranges-diff")
             .payload(diffFunctionRequestPayload)
             .build()
@@ -201,7 +209,7 @@ class BinRangesIngestIT {
         SdkBytes integrityFunctionRequestPayload = SdkBytes.fromUtf8String(diffFunctionResponseCandidate.toString());
 
         logger.debug("invoking bin-ranges-integrity");
-        var integrityFunctionInvokeRes = lambdaClient.invoke(InvokeRequest.builder()
+        InvokeResponse integrityFunctionInvokeRes = lambdaClient.invoke(InvokeRequest.builder()
             .functionName("bin-ranges-integrity")
             .payload(integrityFunctionRequestPayload)
             .build()
@@ -211,7 +219,7 @@ class BinRangesIngestIT {
         SdkBytes promotionFunctionRequestPayload = SdkBytes.fromUtf8String(integrityFunctionResponseCandidate.toString());
 
         logger.debug("invoking bin-ranges-promotion");
-        var promotionFunctionInvokeRes = lambdaClient.invoke(InvokeRequest.builder()
+        InvokeResponse promotionFunctionInvokeRes = lambdaClient.invoke(InvokeRequest.builder()
             .functionName("bin-ranges-promotion")
             .payload(promotionFunctionRequestPayload)
             .build()
@@ -222,7 +230,7 @@ class BinRangesIngestIT {
         assertEquals(2, s3Client.listObjects(ListObjectsRequest.builder()
             .bucket(PROMOTED_BUCKET_NAME).build()).contents().size());
     }
-    
+
     // --- PRIVATE ---
 
     private JSONObject commonAssertions(SdkBytes responsePayload) {
@@ -233,13 +241,16 @@ class BinRangesIngestIT {
     }
 
     private static String testcontainersLabels() {
+        Stream<String> containerLifecycleManagementLabels = Stream.concat(
+                DockerClientFactory.DEFAULT_LABELS.entrySet().stream(),
+                ResourceReaper.instance().getLabels().entrySet().stream())
+            .map(entry -> String.format("-l %s=%s", entry.getKey(), entry.getValue()));
+
+        Stream<String> containerNetworkingLabels = Stream.of("--add-host host.testcontainers.internal:host-gateway");
+
         return Stream.concat(
-                Stream
-                    .of(DockerClientFactory.DEFAULT_LABELS.entrySet().stream(),
-                        ResourceReaper.instance().getLabels().entrySet().stream())
-                    .flatMap(Function.identity())
-                    .map(entry -> String.format("-l %s=%s", entry.getKey(), entry.getValue())),
-                Stream.of("--add-host host.testcontainers.internal:host-gateway")) // important to allow lambdas to connect out to local sftp
+                containerLifecycleManagementLabels,
+                containerNetworkingLabels)
             .collect(Collectors.joining(" "));
     }
 
@@ -250,8 +261,8 @@ class BinRangesIngestIT {
             .functionName(functionName)
             .build();
 
-        InputStream is = new FileInputStream(Paths.get(format("target/jars/%s-1.0-SNAPSHOT-uber.jar", functionName)).toString());
-        SdkBytes fileToUpload = SdkBytes.fromInputStream(is);
+        InputStream jarInputStream = new FileInputStream(Paths.get(format("target/jars/%s-1.0-SNAPSHOT-uber.jar", functionName)).toString());
+        SdkBytes fileToUpload = SdkBytes.fromInputStream(jarInputStream);
 
         FunctionCode functionCode = FunctionCode.builder()
             .zipFile(fileToUpload)

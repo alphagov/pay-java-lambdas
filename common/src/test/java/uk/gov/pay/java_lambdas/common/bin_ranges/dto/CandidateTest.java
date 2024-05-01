@@ -38,8 +38,8 @@ class CandidateTest {
     
     @Test
     void proceed() {
-        var candidate = new Candidate("an/s3/key.csv", true);
-        var result = Candidate.proceed(candidate);
+        Candidate candidate = new Candidate("an/s3/key.csv", true);
+        Candidate result = Candidate.proceed(candidate);
 
         assertEquals(fixedInstant, candidate.time());
         assertEquals(candidate.s3Key(), result.s3Key());
@@ -50,9 +50,9 @@ class CandidateTest {
 
     @Test
     void halt() {
-        var failureMessage = "I failed for some reason";
-        var candidate = new Candidate("an/s3/key.csv", true);
-        var result = Candidate.halt(candidate, failureMessage);
+        String failureMessage = "I failed for some reason";
+        Candidate candidate = new Candidate("an/s3/key.csv", true);
+        Candidate result = Candidate.halt(candidate, failureMessage);
 
         assertEquals(fixedInstant, candidate.time());
         assertEquals(candidate.s3Key(), result.s3Key());
@@ -63,9 +63,9 @@ class CandidateTest {
 
     @Test
     void candidate_ShouldSerialize_andDeserialize() throws JsonProcessingException {
-        var expected = new Candidate("an/s3/key.csv", false, "A failure message");
-        var jsonStr = objectMapper.writeValueAsString(expected);
-        var result = objectMapper.readValue(jsonStr, Candidate.class);
+        Candidate expected = new Candidate("an/s3/key.csv", false, "A failure message");
+        String jsonStr = objectMapper.writeValueAsString(expected);
+        Candidate result = objectMapper.readValue(jsonStr, Candidate.class);
 
         assertEquals(fixedInstant, expected.time());
         assertEquals(expected.s3Key(), result.s3Key());

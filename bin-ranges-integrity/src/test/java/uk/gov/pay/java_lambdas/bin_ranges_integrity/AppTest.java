@@ -35,7 +35,6 @@ import java.util.zip.ZipInputStream;
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
@@ -85,8 +84,8 @@ class AppTest {
     @ParameterizedTest
     @MethodSource
     void handleRequest_shouldValidateRanges(String candidateFilename, boolean expected) throws IOException {
-        var candidatePath = Paths.get(format("src/test/resources/test-data/%s", candidateFilename)).toString();
-        var promotedPath = Paths.get("src/test/resources/test-data/promoted.csv").toString();
+        String candidatePath = Paths.get(format("src/test/resources/test-data/%s", candidateFilename)).toString();
+        String promotedPath = Paths.get("src/test/resources/test-data/promoted.csv").toString();
 
         try (FileInputStream candidateFIS = new FileInputStream(candidatePath);
              FileInputStream promotedFIS = new FileInputStream(promotedPath)) {
@@ -116,9 +115,9 @@ class AppTest {
     @ParameterizedTest
     @MethodSource
     void handleRequest_shouldLogError_andReturnFalse_ifPercentageChange_isTooGreat(String filename, String percentageChange) throws IOException {
-        var candidatePath = Paths.get(format("src/test/resources/test-data/%s.csv", filename)).toString();
-        var promotedPath = Paths.get("src/test/resources/test-data/promoted.csv").toString();
-        var expectedErrorMessage = format("Candidate outside of acceptable change percentage [actual: %s] [acceptable: 5.00]", percentageChange);
+        String candidatePath = Paths.get(format("src/test/resources/test-data/%s.csv", filename)).toString();
+        String promotedPath = Paths.get("src/test/resources/test-data/promoted.csv").toString();
+        String expectedErrorMessage = format("Candidate outside of acceptable change percentage [actual: %s] [acceptable: 5.00]", percentageChange);
         
         try (FileInputStream candidateFIS = new FileInputStream(candidatePath);
              FileInputStream promotedFIS = new FileInputStream(promotedPath)) {
