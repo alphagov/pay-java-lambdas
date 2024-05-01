@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.util.Utils.createTempPrivateKeyFile;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.util.Utils.extractDateString;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.util.Utils.extractVersion;
+import static uk.gov.pay.java_lambdas.common.bin_ranges.helper.LocalSftpServer.loadData;
 
 class UtilsTest {
     private static final String BIN_RANGE_VERSION_NOT_FOUND_ERROR_MESSAGE = "No version string found in file name";
@@ -56,9 +57,7 @@ class UtilsTest {
     
     @Test
     void createTempPrivateKeyFile_shouldWriteKeyToTemporaryFile() throws IOException {
-        String expected = new String(Files.readAllBytes(
-            Path.of(ClassLoader.getSystemResource("ssh/test_private_key.rsa").getPath()))
-        );
+        String expected = loadData("/ssh-config/test_private_key.rsa", "\n", getClass());
         Path tempPrivateKeyPath = createTempPrivateKeyFile(expected);
         String result = new String(Files.readAllBytes(
             tempPrivateKeyPath

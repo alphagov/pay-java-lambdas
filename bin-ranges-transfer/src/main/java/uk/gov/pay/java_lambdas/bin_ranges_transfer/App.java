@@ -16,6 +16,7 @@ import uk.gov.pay.java_lambdas.bin_ranges_transfer.exception.SshConnectionExcept
 import uk.gov.pay.java_lambdas.bin_ranges_transfer.model.BinRangeSftpDownload;
 import uk.gov.pay.java_lambdas.common.bin_ranges.dto.Candidate;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
@@ -85,8 +86,7 @@ public class App implements RequestHandler<Void, Candidate> {
                     var candidateKey = streamFilesToS3(sftpClient, downloadList);
                     return new Candidate(candidateKey, true);
                 } else {
-                    logger.warn("No BIN ranges data found on server");
-                    return new Candidate(null, false);
+                    throw new FileNotFoundException("No BIN ranges data found on server");
                 }
             }
         } catch (IOException e) {

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.zip.ZipInputStream;
 
+import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -51,8 +52,7 @@ class IssuerBINDetailRecordTest {
     void issuerBINDetailRecord_shouldDeserialize_andValidate_fromCSV(String filename) throws IOException {
 
         List<IssuerBINDetailRecord> records = Collections.synchronizedList(new ArrayList<>());
-        
-        try (InputStream inputStream = new FileInputStream(Paths.get("src/test/resources/test-data", filename).toString());
+        try (InputStream inputStream = getClass().getResourceAsStream(format("/realistic-ranges/%s", filename));
              ZipInputStream zipInputStream = new ZipInputStream(inputStream);
              BufferedReader reader = new BufferedReader(new InputStreamReader(zipInputStream))) {
 
@@ -77,7 +77,7 @@ class IssuerBINDetailRecordTest {
     }
 
     @ParameterizedTest
-    @CsvFileSource(resources = "/bad_ranges.csv", numLinesToSkip = 1)
+    @CsvFileSource(resources = "/test-data/bad_ranges.csv", numLinesToSkip = 1)
     void issuerBINDetailRecord_shouldFailValidation_ifRequiredField_isMissing(String expected, String input) throws IOException {
 
         Exception exception = assertThrows(ConstraintViolationException.class, () -> {

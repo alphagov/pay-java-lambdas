@@ -25,6 +25,10 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>url-connection-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-crt-client</artifactId>
         </dependency>
         <dependency>
@@ -67,10 +71,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>
-                        -XX:+EnableDynamicAgentLoading
-                        -Xshare:off
-                    </argLine>
                     <environmentVariables>
                         <AWS_REGION>eu-west-1</AWS_REGION>
                         <AWS_ACCOUNT_NAME>test</AWS_ACCOUNT_NAME>

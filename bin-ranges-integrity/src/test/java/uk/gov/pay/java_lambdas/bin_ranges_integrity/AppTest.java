@@ -84,8 +84,8 @@ class AppTest {
     @ParameterizedTest
     @MethodSource
     void handleRequest_shouldValidateRanges(String candidateFilename, boolean expected) throws IOException {
-        var candidatePath = Paths.get(format("src/test/resources/test-data/%s", candidateFilename)).toString();
-        var promotedPath = Paths.get("src/test/resources/test-data/promoted.csv").toString();
+        String candidatePath = Paths.get(format("src/test/resources/test-data/%s", candidateFilename)).toString();
+        String promotedPath = Paths.get("src/test/resources/test-data/promoted.csv").toString();
 
         try (FileInputStream candidateFIS = new FileInputStream(candidatePath);
              FileInputStream promotedFIS = new FileInputStream(promotedPath)) {
@@ -115,9 +115,10 @@ class AppTest {
     @ParameterizedTest
     @MethodSource
     void handleRequest_shouldLogError_andReturnFalse_ifPercentageChange_isTooGreat(String filename, String percentageChange) throws IOException {
-        var candidatePath = Paths.get(format("src/test/resources/test-data/%s.csv", filename)).toString();
-        var promotedPath = Paths.get("src/test/resources/test-data/promoted.csv").toString();
-
+        String candidatePath = Paths.get(format("src/test/resources/test-data/%s.csv", filename)).toString();
+        String promotedPath = Paths.get("src/test/resources/test-data/promoted.csv").toString();
+        String expectedErrorMessage = format("Candidate outside of acceptable change percentage [actual: %s] [acceptable: 5.00]", percentageChange);
+        
         try (FileInputStream candidateFIS = new FileInputStream(candidatePath);
              FileInputStream promotedFIS = new FileInputStream(promotedPath)) {
 
@@ -130,30 +131,29 @@ class AppTest {
             Candidate result = function.handleRequest(candidate, context);
             List<ILoggingEvent> logsList = listAppender.list;
             assertFalse(result.proceed());
+            assertTrue(result.failureMessage().contains(expectedErrorMessage));
             assertTrue(logsList
                 .getLast()
                 .getFormattedMessage()
-                .contains(format("Candidate outside of acceptable change percentage [actual: %s] [acceptable: 5.00]", percentageChange)));
+                .contains(expectedErrorMessage));
         }
     }
 
     @Test
     void handleRequest_shouldProcessRealisticFileSizes() throws IOException {
-        var candidatePath = Paths.get("src/test/resources/test-data/realistic-ranges/BIN_V03_REDACTED_2.zip").toString();
-        var promotedPath = Paths.get("src/test/resources/test-data/realistic-ranges/BIN_V03_REDACTED_1.zip").toString();
-        
+        // loaded from common module test resources
         try (
-            FileInputStream candidateFIS = new FileInputStream(candidatePath);
-            FileInputStream promotedFIS = new FileInputStream(promotedPath);
-            ZipInputStream candidateZIS = new ZipInputStream(candidateFIS);
-            ZipInputStream promotedZIS = new ZipInputStream(promotedFIS);
+            InputStream candidateIS = getClass().getResourceAsStream("/realistic-ranges/BIN_V03_REDACTED_2.zip");
+            InputStream promotedIS = getClass().getResourceAsStream("/realistic-ranges/BIN_V03_REDACTED_1.zip");
+            ZipInputStream candidateZIS = new ZipInputStream(candidateIS);
+            ZipInputStream promotedZIS = new ZipInputStream(promotedIS);
         ) {
             candidateZIS.getNextEntry();
             promotedZIS.getNextEntry();
 
             when(mockS3Client.headObject(any(HeadObjectRequest.class)))
-                .thenReturn(headObjRes(candidateFIS.available()))
-                .thenReturn(headObjRes(promotedFIS.available()));
+                .thenReturn(headObjRes(candidateIS.available()))
+                .thenReturn(headObjRes(promotedIS.available()));
 
             when(mockS3Client.getObject(any(GetObjectRequest.class)))
                 .thenReturn(getObjRes(candidateZIS))

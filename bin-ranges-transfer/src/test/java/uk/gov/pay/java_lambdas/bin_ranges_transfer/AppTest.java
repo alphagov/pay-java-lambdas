@@ -21,17 +21,21 @@ import software.amazon.awssdk.services.ssm.model.GetParameterResponse;
 import software.amazon.awssdk.services.ssm.model.Parameter;
 import uk.gov.pay.java_lambdas.bin_ranges_transfer.config.Constants;
 import uk.gov.pay.java_lambdas.bin_ranges_transfer.exception.SshConnectionException;
-import uk.gov.pay.java_lambdas.bin_ranges_transfer.helper.TestSftpServer;
 import uk.gov.pay.java_lambdas.common.bin_ranges.dto.Candidate;
+import uk.gov.pay.java_lambdas.common.bin_ranges.helper.LocalSftpServer;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,8 +48,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.pay.java_lambdas.bin_ranges_transfer.DependencyFactory.SFTP_VERSION;
-import static uk.gov.pay.java_lambdas.bin_ranges_transfer.helper.TestSftpServer.TEST_SERVER_USERNAME;
-import static uk.gov.pay.java_lambdas.bin_ranges_transfer.helper.TestSftpServer.V03_FILENAME;
+import static uk.gov.pay.java_lambdas.common.bin_ranges.helper.LocalSftpServer.TEST_SERVER_USERNAME;
+import static uk.gov.pay.java_lambdas.common.bin_ranges.helper.LocalSftpServer.V03_FILENAME;
+import static uk.gov.pay.java_lambdas.common.bin_ranges.helper.LocalSftpServer.loadData;
 
 @ExtendWith(MockitoExtension.class)
 class AppTest {
@@ -57,27 +62,22 @@ class AppTest {
     private SsmClient mockSsmClient;
     private MockedStatic<Constants> constantsMockedStatic;
     private MockedStatic<DependencyFactory> dependencyFactoryMockedStatic;
-    private TestSftpServer testSftpServer;
+    private LocalSftpServer localSftpServer;
     private String testPassphrase;
-    private String testPrivateKey;
 
     @BeforeEach
     public void setUp() throws Exception {
-        testSftpServer = new TestSftpServer();
-        testSftpServer.startServer();
+        localSftpServer = new LocalSftpServer();
+        localSftpServer.startServer();
 
-        testPrivateKey = new String(Files.readAllBytes(
-            Path.of(ClassLoader.getSystemResource("ssh/test_private_key.rsa").getPath()))
-        );
-        testPassphrase = String.join("", Files.readAllLines(
-            Path.of(ClassLoader.getSystemResource("ssh/test_passphrase").getPath())
-        ));
+        testPassphrase = loadData("/ssh-config/test_passphrase", "", getClass());
+        String testPrivateKey = loadData("/ssh-config/test_private_key.rsa", "\n", getClass());
 
         constantsMockedStatic = mockStatic(Constants.class);
         dependencyFactoryMockedStatic = mockStatic(DependencyFactory.class, CALLS_REAL_METHODS);
 
-        constantsMockedStatic.when(Constants::getSftpPort).thenReturn(testSftpServer.getPort());
-        constantsMockedStatic.when(Constants::getSftpHost).thenReturn(testSftpServer.getHost());
+        constantsMockedStatic.when(Constants::getSftpPort).thenReturn(localSftpServer.getPort());
+        constantsMockedStatic.when(Constants::getSftpHost).thenReturn(localSftpServer.getHost());
         dependencyFactoryMockedStatic.when(DependencyFactory::s3Client).thenReturn(mockS3Client);
         dependencyFactoryMockedStatic.when(DependencyFactory::ssmClient).thenReturn(mockSsmClient);
 
@@ -90,13 +90,13 @@ class AppTest {
 
     @AfterEach
     public void tearDown() throws Exception {
-        testSftpServer.stopServer();
+        localSftpServer.stopServer();
         constantsMockedStatic.close();
         dependencyFactoryMockedStatic.close();
     }
 
     @Test
-    void handleRequest_shouldReturnTrue_ifBinRangesAreFound() throws GeneralSecurityException, IOException {
+    void handleRequest_shouldProceed_ifBinRangesAreFound() throws GeneralSecurityException, IOException {
         constantsMockedStatic.when(Constants::getSftpUsername).thenReturn(TEST_SERVER_USERNAME);
 
         App function = new App();
@@ -109,7 +109,7 @@ class AppTest {
     }
 
     @Test
-    void handleRequest_shouldReturnFalse_ifNoBinRangesAreFound() throws IOException, GeneralSecurityException {
+    void handleRequest_shouldThrowError_ifNoBinRangesAreFound() throws IOException, GeneralSecurityException {
         constantsMockedStatic.when(Constants::getSftpUsername).thenReturn(TEST_SERVER_USERNAME);
         var simulatedDirEntries = List.of(
             new SftpClient.DirEntry("not_a_bin_range.csv", "", new SftpClient.Attributes()),
@@ -125,9 +125,8 @@ class AppTest {
             });
 
         App function = new App();
-        Candidate result = function.handleRequest(null, mockContext);
-        assertFalse(result.proceed());
-        assertNull(result.s3Key());
+        var sshConnectionException = assertThrows(SshConnectionException.class, () -> function.handleRequest(null, mockContext));
+        assertTrue(sshConnectionException.getMessage().contains("No BIN ranges data found on server"));
     }
 
     @Test

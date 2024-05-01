@@ -69,10 +69,10 @@ public class App implements RequestHandler<Candidate, Candidate> {
             checkFileSizes(candidate);
             parseAndValidate(candidate);
             logger.info("Data integrity check successful");
-            return Candidate.from(candidate, true);
+            return Candidate.proceed(candidate);
         } catch (Exception e) {
             logger.error("{}", e.getMessage());
-            return Candidate.from(candidate, false);
+            return Candidate.halt(candidate, e.getMessage());
         }
     }
 

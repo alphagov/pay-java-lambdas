@@ -17,6 +17,7 @@
 *.ear
 *.zip
 !**/test-data/**/*.zip
+!**/realistic-ranges/*.zip
 *.tar.gz
 *.rar
 
