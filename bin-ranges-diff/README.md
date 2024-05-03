@@ -36,6 +36,10 @@ mvn clean test
 
 ## Deployment
 
-Managed via Terraform, coming soon
+Managed via Terraform
+
+- Run `mvn clean verify`
+- Copy the built `uber` jar from the `target` directory to the [`functions` directory](https://github.com/alphagov/pay-infra/tree/master/provisioning/terraform/modules/pay_bin_ranges_automation/functions) in the terraform module
+- Run `terraform apply` for the relevant deployment
 
 

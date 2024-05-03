@@ -15,6 +15,9 @@ The function handler returns the outcome of streaming BIN ranges data from World
 | PRIVATE_KEY_PARAMETER_NAME | deploy_worldpay_secure_file_gateway.private-key | YES      |
 | WORLDPAY_FILE_VERSION      | V03                                             | YES      |
 | LOG_LEVEL                  | DEBUG                                           | NO       |
+| SFTP_PORT                  | 22                                              | NO       |
+| SFTP_HOST                  | mfg.worldpay.com                                | NO       |
+| SFTP_USERNAME              | MFG_MTCPGOVD                                    | NO       |
 
 ## Prerequisites
 
@@ -39,6 +42,10 @@ mvn clean test
 
 ## Deployment
 
-Managed via Terraform, coming soon
+Managed via Terraform
+
+- Run `mvn clean verify`
+- Copy the built `uber` jar from the `target` directory to the [`functions` directory](https://github.com/alphagov/pay-infra/tree/master/provisioning/terraform/modules/pay_bin_ranges_automation/functions) in the terraform module
+- Run `terraform apply` for the relevant deployment
 
 
