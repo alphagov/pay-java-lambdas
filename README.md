@@ -3,6 +3,8 @@ GOV.UK Pay Java Lambdas
 
 Maven multi-module Java21 monorepo for GOV.UK Pay Lambdas 
 
+See individual modules for additional information
+
 ### Generate a new Lambda scaffold
 
 https://github.com/aws/aws-sdk-java-v2/blob/master/archetypes/archetype-lambda/README.md
