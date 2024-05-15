@@ -1,5 +1,6 @@
 package uk.gov.pay.java_lambdas.integration.bin_ranges;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -267,22 +269,9 @@ class BinRangesIngestIT {
         FunctionCode functionCode = FunctionCode.builder()
             .zipFile(fileToUpload)
             .build();
-
-        // env vars for all functions
+        
         Environment functionEnv = Environment.builder()
-            .variables(Map.ofEntries(
-                Map.entry("AWS_ACCESS_KEY_ID", LOCALSTACK.getAccessKey()),
-                Map.entry("AWS_SECRET_ACCESS_KEY", LOCALSTACK.getSecretKey()),
-                Map.entry("AWS_ACCOUNT_NAME", AWS_ACCOUNT_NAME),
-                Map.entry("AWS_REGION", "eu-west-1"),
-                Map.entry("LOG_LEVEL", "DEBUG"),
-                Map.entry("PASSPHRASE_PARAMETER_NAME", PASSPHRASE_PARAMETER_NAME),
-                Map.entry("PRIVATE_KEY_PARAMETER_NAME", PRIVATE_KEY_PARAMETER_NAME),
-                Map.entry("SFTP_HOST", "host.testcontainers.internal"),
-                Map.entry("SFTP_PORT", String.valueOf(LOCAL_SFTP_SERVER.getPort())),
-                Map.entry("SFTP_USERNAME", TEST_SERVER_USERNAME),
-                Map.entry("LOCALSTACK_ENABLED", "TRUE")
-            )).build();
+            .variables(getLambdaEnvVars(function)).build();
 
         CreateFunctionRequest createFunctionRequest = CreateFunctionRequest.builder()
             .functionName(functionName)
@@ -303,5 +292,26 @@ class BinRangesIngestIT {
             WaiterResponse<GetFunctionResponse> activeResponse = lambdaWaiter.waitUntilFunctionActiveV2(getFunctionRequest);
             activeResponse.matched().response().ifPresent(response -> logger.debug("LAMBDA READY: {}", response.configuration().functionName()));
         }, executor);
+    }
+
+    @NotNull
+    private static HashMap<String, String> getLambdaEnvVars(String function) {
+        HashMap<String, String> environmentVars = new HashMap<>() {{
+            put("LOCALSTACK_ENABLED", "TRUE");
+            put("AWS_ACCESS_KEY_ID", LOCALSTACK.getAccessKey());
+            put("AWS_SECRET_ACCESS_KEY", LOCALSTACK.getSecretKey());
+            put("AWS_ACCOUNT_NAME", AWS_ACCOUNT_NAME);
+            put("AWS_REGION", "eu-west-1");
+            put("LOG_LEVEL", "DEBUG");
+        }};
+
+        if (function.equals("transfer")) {
+            environmentVars.put("PASSPHRASE_PARAMETER_NAME", PASSPHRASE_PARAMETER_NAME);
+            environmentVars.put("PRIVATE_KEY_PARAMETER_NAME", PRIVATE_KEY_PARAMETER_NAME);
+            environmentVars.put("SFTP_HOST", "host.testcontainers.internal");
+            environmentVars.put("SFTP_PORT", String.valueOf(LOCAL_SFTP_SERVER.getPort()));
+            environmentVars.put("SFTP_USERNAME", TEST_SERVER_USERNAME);
+        }
+        return environmentVars;
     }
 }
