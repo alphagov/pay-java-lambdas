@@ -17,6 +17,7 @@
         <module>bin-ranges-transfer</module>
         <module>bin-ranges-promotion</module>
         <module>e2e</module>
+        <module>live-payment-data-extract</module>
     </modules>
 
     <properties>
@@ -28,6 +29,7 @@
         <slf4j.version>2.0.11</slf4j.version>
         <mockito.version>5.10.0</mockito.version>
         <jackson.version>2.16.1</jackson.version>
+        <wiremock.version>3.9.1</wiremock.version>
         <hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
         <testcontainers.version>1.19.7</testcontainers.version>
         <sshd.version>2.12.0</sshd.version>
@@ -46,6 +48,21 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>s3</artifactId>
+                <version>${aws.java.sdk.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>software.amazon.awssdk</groupId>
+                        <artifactId>netty-nio-client</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>software.amazon.awssdk</groupId>
+                        <artifactId>apache-client</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>dynamodb</artifactId>
                 <version>${aws.java.sdk.version}</version>
                 <exclusions>
                     <exclusion>
@@ -85,6 +102,11 @@
                 <version>${testcontainers.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wiremock</groupId>
+                <artifactId>wiremock</artifactId>
+                <version>${wiremock.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.sshd</groupId>

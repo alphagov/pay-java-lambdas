@@ -1,0 +1,102 @@
+[
+  {
+    "id": 2,
+    "external_id": "dae7561d118741fda742af9baf0d168d",
+    "gateway_account_ids": [
+      "2"
+    ],
+    "merchant_details": {
+      "name": "NS:ORG"
+    },
+    "internal": false,
+    "archived": false,
+    "created_date": "2024-06-03T09:17:00.042Z",
+    "went_live_date": "2024-06-03T09:17:00.042Z",
+    "_links": [
+      {
+        "rel": "self",
+        "method": "GET",
+        "href": "http://localhost:8080/v1/api/services/dae7561d118741fda742af9baf0d168d"
+      }
+    ],
+    "redirect_to_service_immediately_on_terminal_state": false,
+    "collect_billing_address": true,
+    "default_billing_address_country": "GB",
+    "current_go_live_stage": "NOT_STARTED",
+    "experimental_features_enabled": false,
+    "takes_payments_over_phone": false,
+    "agent_initiated_moto_enabled": false,
+    "current_psp_test_account_stage": "NOT_STARTED",
+    "name": "NS:TEST2",
+    "service_name": {
+      "en": "NS:TEST2"
+    }
+  },
+  {
+    "id": 3,
+    "external_id": "15c8910e973746c7b009e51df0460071",
+    "gateway_account_ids": [
+      "3"
+    ],
+    "merchant_details": {
+      "name": "NS:ORG"
+    },
+    "internal": false,
+    "archived": false,
+    "created_date": "2024-06-25T12:51:23.931Z",
+    "went_live_date": "2024-06-25T12:51:23.931Z",
+    "_links": [
+      {
+        "rel": "self",
+        "method": "GET",
+        "href": "http://localhost:8080/v1/api/services/15c8910e973746c7b009e51df0460071"
+      }
+    ],
+    "redirect_to_service_immediately_on_terminal_state": false,
+    "collect_billing_address": true,
+    "default_billing_address_country": "GB",
+    "current_go_live_stage": "NOT_STARTED",
+    "experimental_features_enabled": false,
+    "takes_payments_over_phone": false,
+    "agent_initiated_moto_enabled": false,
+    "current_psp_test_account_stage": "NOT_STARTED",
+    "name": "NS:TEST3",
+    "service_name": {
+      "en": "NS:TEST3"
+    }
+  },
+  {
+    "id": 1,
+    "external_id": "4e075c56d565481eb83af8a3b4c681b8",
+    "gateway_account_ids": [
+      "1"
+    ],
+    "merchant_details": {
+      "name": "NS:ORG"
+    },
+    "internal": false,
+    "archived": false,
+    "created_date": "2024-05-28T16:35:43.617Z",
+    "went_live_date": "2024-05-28T16:35:43.617Z",
+    "_links": [
+      {
+        "rel": "self",
+        "method": "GET",
+        "href": "http://localhost:8080/v1/api/services/4e075c56d565481eb83af8a3b4c681b8"
+      }
+    ],
+    "redirect_to_service_immediately_on_terminal_state": false,
+    "collect_billing_address": true,
+    "default_billing_address_country": "GB",
+    "current_go_live_stage": "NOT_STARTED",
+    "experimental_features_enabled": false,
+    "takes_payments_over_phone": false,
+    "agent_initiated_moto_enabled": false,
+    "current_psp_test_account_stage": "NOT_STARTED",
+    "name": "NS:TEST",
+    "service_name": {
+      "en": "NS:TEST",
+      "cy": "bruh"
+    }
+  }
+]
