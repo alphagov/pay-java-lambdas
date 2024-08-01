@@ -17,6 +17,7 @@
         <module>bin-ranges-transfer</module>
         <module>bin-ranges-promotion</module>
         <module>e2e</module>
+        <module>live-payment-data-extract</module>
     </modules>
 
     <properties>
