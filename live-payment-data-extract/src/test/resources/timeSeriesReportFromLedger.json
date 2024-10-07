@@ -1,0 +1,122 @@
+[
+  {
+    "timestamp": "2024-10-04T00:00:00.000000Z",
+    "all_payments": 500,
+    "errored_payments": 0,
+    "completed_payments": 354,
+    "amount": 3558897,
+    "net_amount": 597321,
+    "total_amount": 0,
+    "fee": 4783
+  },
+  {
+    "timestamp": "2024-10-04T01:00:00.000000Z",
+    "all_payments": 401,
+    "errored_payments": 0,
+    "completed_payments": 265,
+    "amount": 2336767,
+    "net_amount": 262009,
+    "total_amount": 0,
+    "fee": 3799
+  },
+  {
+    "timestamp": "2024-10-04T02:00:00.000000Z",
+    "all_payments": 298,
+    "errored_payments": 0,
+    "completed_payments": 179,
+    "amount": 2110852,
+    "net_amount": 445344,
+    "total_amount": 0,
+    "fee": 4596
+  },
+  {
+    "timestamp": "2024-10-04T03:00:00.000000Z",
+    "all_payments": 319,
+    "errored_payments": 0,
+    "completed_payments": 199,
+    "amount": 1875436,
+    "net_amount": 294309,
+    "total_amount": 0,
+    "fee": 3681
+  },
+  {
+    "timestamp": "2024-10-04T04:00:00.000000Z",
+    "all_payments": 496,
+    "errored_payments": 2,
+    "completed_payments": 356,
+    "amount": 2820255,
+    "net_amount": 504118,
+    "total_amount": 0,
+    "fee": 4852
+  },
+  {
+    "timestamp": "2024-10-04T05:00:00.000000Z",
+    "all_payments": 944,
+    "errored_payments": 0,
+    "completed_payments": 748,
+    "amount": 6828604,
+    "net_amount": 1570201,
+    "total_amount": 0,
+    "fee": 10526
+  },
+  {
+    "timestamp": "2024-10-04T06:00:00.000000Z",
+    "all_payments": 1769,
+    "errored_payments": 0,
+    "completed_payments": 1487,
+    "amount": 11798725,
+    "net_amount": 3551833,
+    "total_amount": 0,
+    "fee": 24236
+  },
+  {
+    "timestamp": "2024-10-04T07:00:00.000000Z",
+    "all_payments": 3439,
+    "errored_payments": 2,
+    "completed_payments": 2745,
+    "amount": 20977275,
+    "net_amount": 4243426,
+    "total_amount": 0,
+    "fee": 30001
+  },
+  {
+    "timestamp": "2024-10-04T08:00:00.000000Z",
+    "all_payments": 5389,
+    "errored_payments": 10,
+    "completed_payments": 4778,
+    "amount": 42733297,
+    "net_amount": 6255226,
+    "total_amount": 0,
+    "fee": 42329
+  },
+  {
+    "timestamp": "2024-10-04T09:00:00.000000Z",
+    "all_payments": 6367,
+    "errored_payments": 20,
+    "completed_payments": 5568,
+    "amount": 44583606,
+    "net_amount": 7305960,
+    "total_amount": 0,
+    "fee": 50066
+  },
+  {
+    "timestamp": "2024-10-04T10:00:00.000000Z",
+    "all_payments": 6553,
+    "errored_payments": 15,
+    "completed_payments": 5643,
+    "amount": 52387655,
+    "net_amount": 7606573,
+    "total_amount": 0,
+    "fee": 53055
+  },
+  {
+    "timestamp": "2024-10-04T11:00:00.000000Z",
+    "all_payments": 6167,
+    "errored_payments": 27,
+    "completed_payments": 5194,
+    "amount": 42788969,
+    "net_amount": 6295018,
+    "total_amount": 0,
+    "fee": 41701
+  }
+]
