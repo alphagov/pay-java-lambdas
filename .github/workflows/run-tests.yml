@@ -57,3 +57,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2-
       - name: Run tests
         run: mvn --no-transfer-progress clean verify
+
+  dependency-review:
+    name: Dependency Review scan
+    uses: alphagov/pay-ci/.github/workflows/_run-dependency-review.yml@master
