@@ -1,0 +1,40 @@
+name: Build and publish to S3
+
+on:
+  workflow_call:
+  pull_request:
+
+jobs:
+#  check-signing-key:
+#    uses: ./.github/workflows/_check_gpg_signing_key.yml
+#    secrets:
+#      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
+  release:
+#    needs: check-signing-key
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+      - name: Show submodules
+        run: |
+          git fetch origin main:main
+          git diff --name-only --diff-filter=d main~ main | xargs dirname | grep '^bin-ranges-' | cut -f 1 -d "/" |  uniq > submodules.txt
+          echo "Submodules to build:"
+          cat submodules.txt
+      - name: Install Java and Maven
+        uses: actions/setup-java@5ffc13f4174014e2d4d4572b3d74c3fa61aeb2c2
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+      - name: Cache Maven packages
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Build submodules
+        run: |
+          while read line; do
+            mvn clean compile --projects $line --also-make
+          done < submodules.txt
