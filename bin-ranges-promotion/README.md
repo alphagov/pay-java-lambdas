@@ -15,7 +15,7 @@ The function handler replaces the currently promoted BIN ranges with a validated
 
 ## Prerequisites
 
-- Java 21
+- Java 25
 - Apache Maven
 
 ## Development

@@ -1,7 +1,7 @@
 # pay-java-lambdas
 GOV.UK Pay Java Lambdas
 
-Maven multi-module Java21 monorepo for GOV.UK Pay Lambdas 
+Maven multi-module Java25 monorepo for GOV.UK Pay Lambdas 
 
 See individual modules for additional information
 

@@ -15,7 +15,7 @@ The function handler returns the outcome of diffing the currently promoted BIN r
 
 ## Prerequisites
 
-- Java 21
+- Java 25
 - Apache Maven
 
 ## Development

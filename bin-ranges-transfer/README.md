@@ -21,7 +21,7 @@ The function handler returns the outcome of streaming BIN ranges data from World
 
 ## Prerequisites
 
-- Java 21
+- Java 25
 - Apache Maven
 
 ## Development

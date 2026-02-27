@@ -67,7 +67,7 @@ class BinRangesIngestIT {
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private static final Logger logger = LoggerFactory.getLogger(BinRangesIngestIT.class);
     // don't forget to change the tag in GHA workflow if you update this 
-    private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:3.3");
+    private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:4.11");
     
     /**
      * debug logging can be enabled with the following env vars:
@@ -83,7 +83,9 @@ class BinRangesIngestIT {
         .withEnv("DEFAULT_REGION", Region.EU_WEST_1.toString())
         .withEnv("LAMBDA_DOCKER_FLAGS", testcontainersLabels())
         .withEnv("LAMBDA_IGNORE_ARCHITECTURE", "1")
-        .withEnv("LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT", "60");
+        .withEnv("LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT", "60")
+        .withEnv("LAMBDA_LIMITS_CODE_SIZE_ZIPPED", "100000000")
+        .withEnv("LAMBDA_LIMITS_CREATE_FUNCTION_REQUEST_SIZE", "100000000");
 
     private S3Client s3Client;
     private SsmClient ssmClient;
@@ -279,7 +281,7 @@ class BinRangesIngestIT {
             .code(functionCode)
             .handler(format("uk.gov.pay.java_lambdas.bin_ranges_%s.App::handleRequest", function))
             .architectures(Architecture.ARM64)
-            .runtime(Runtime.JAVA21)
+            .runtime(Runtime.JAVA25)
             .timeout(300)
             .role("arn:aws:iam::000000000000:role/lambda-role")
             .build();

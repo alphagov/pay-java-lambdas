@@ -4,7 +4,7 @@ This module runs end-to-end tests for serverless code, the built uber jars are l
 
 ## Prerequisites
 
-- Java 21
+- Java 25
 - Apache Maven
 - Docker
 
