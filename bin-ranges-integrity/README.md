@@ -18,7 +18,7 @@ The function handler does the following:
 
 ## Prerequisites
 
-- Java 21
+- Java 25
 - Apache Maven
 
 ## Development
